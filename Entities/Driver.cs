@@ -13,7 +13,6 @@ public partial class Driver
 
     public int TeamId { get; set; }
 
-    public virtual ICollection<Crash> Crashes { get; set; } = new List<Crash>();
-
     public virtual Team Team { get; set; } = null!;
+    public virtual ICollection<CrashDriver> CrashDrivers { get; set; }
 }

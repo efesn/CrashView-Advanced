@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<CrashViewContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
+    });
 var issuer = builder.Configuration["JwtSettings:Issuer"];
 var audience = builder.Configuration["JwtSettings:Audience"];
 var secretKey = builder.Configuration["JwtSettings:SecretKey"];
@@ -33,7 +39,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
         };
     });
-
 
 builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
