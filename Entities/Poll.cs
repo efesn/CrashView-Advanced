@@ -6,5 +6,5 @@
     public DateTime CreatedAt { get; set; }
 
     public Discussion Discussion { get; set; }  
-    public ICollection<PollVote> PollVotes { get; set; } 
+    public ICollection<PollVote> Votes { get; set; } 
 }

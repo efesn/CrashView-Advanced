@@ -7,7 +7,6 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure database context
 builder.Services.AddDbContext<CrashViewContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -16,6 +15,16 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.Preserve;
     });
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+        policy.WithOrigins("http://localhost:3000")  
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials());
+});
+
 var issuer = builder.Configuration["JwtSettings:Issuer"];
 var audience = builder.Configuration["JwtSettings:Audience"];
 var secretKey = builder.Configuration["JwtSettings:SecretKey"];
@@ -40,8 +49,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddControllers();
 builder.Services.AddSwaggerGen();
+
 
 var app = builder.Build();
 
@@ -50,6 +59,8 @@ app.UseSwaggerUI();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseCors("AllowReactApp");
 
 app.MapControllers();
 
