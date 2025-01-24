@@ -42,10 +42,31 @@ public class DiscussionsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Discussion>> PostDiscussion(Discussion discussion)
     {
+        if (discussion.Poll != null)
+        {
+            // Set the DiscussionId to 0 to ensure EF Core treats it as a new entity
+            discussion.Poll.DiscussionId = 0;
+            discussion.Poll.Discussion = null; // Remove circular reference
+        }
+
         _context.Discussions.Add(discussion);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetDiscussion), new { id = discussion.Id }, discussion);
+        // After saving, EF Core will have populated the Discussion.Id
+        // Update the Poll's DiscussionId if it exists
+        if (discussion.Poll != null)
+        {
+            discussion.Poll.DiscussionId = discussion.Id;
+            await _context.SaveChangesAsync();
+        }
+
+        // Load the complete discussion with related data for the response
+        var createdDiscussion = await _context.Discussions
+            .Include(d => d.Comments)
+            .Include(d => d.Poll)
+            .FirstOrDefaultAsync(d => d.Id == discussion.Id);
+
+        return CreatedAtAction(nameof(GetDiscussion), new { id = discussion.Id }, createdDiscussion);
     }
 
     // PUT

@@ -1,0 +1,149 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\efesn\\Desktop\\CrashView-Advanced\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\efesn\\Desktop\\CrashView-Advanced\\api\\CrashViewAdvanced.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:api\\CrashViewAdvanced.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\efesn\\Desktop\\CrashView-Advanced\\api\\CrashViewAdvanced.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:api\\CrashViewAdvanced.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\efesn\\Desktop\\CrashView-Advanced\\api\\CrashViewAdvanced.Tests\\CrashViewAdvanced.Tests.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:api\\CrashViewAdvanced.Tests\\CrashViewAdvanced.Tests.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\efesn\\Desktop\\CrashView-Advanced\\api\\CrashViewAdvanced.Tests\\AuthControllerTests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:api\\CrashViewAdvanced.Tests\\AuthControllerTests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\efesn\\Desktop\\CrashView-Advanced\\CrashViewAdvanced.Tests\\CrashViewAdvanced.Tests.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:CrashViewAdvanced.Tests\\CrashViewAdvanced.Tests.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\efesn\\Desktop\\CrashView-Advanced\\CrashViewAdvanced.Tests\\UnitTest1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:CrashViewAdvanced.Tests\\UnitTest1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\efesn\\Desktop\\CrashView-Advanced\\api\\Program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:api\\Program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 265,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "CrashViewAdvanced.http",
+              "DocumentMoniker": "C:\\Users\\efesn\\Desktop\\CrashView-Advanced\\api\\CrashViewAdvanced.http",
+              "RelativeDocumentMoniker": "api\\CrashViewAdvanced.http",
+              "ToolTip": "C:\\Users\\efesn\\Desktop\\CrashView-Advanced\\api\\CrashViewAdvanced.http",
+              "RelativeToolTip": "api\\CrashViewAdvanced.http",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003502|",
+              "WhenOpened": "2025-01-14T06:30:46.219Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "CrashViewAdvanced.csproj",
+              "DocumentMoniker": "C:\\Users\\efesn\\Desktop\\CrashView-Advanced\\api\\CrashViewAdvanced.csproj",
+              "RelativeDocumentMoniker": "api\\CrashViewAdvanced.csproj",
+              "ToolTip": "C:\\Users\\efesn\\Desktop\\CrashView-Advanced\\api\\CrashViewAdvanced.csproj",
+              "RelativeToolTip": "api\\CrashViewAdvanced.csproj",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-01-14T06:30:37.718Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "CrashViewAdvanced.Tests.csproj",
+              "DocumentMoniker": "C:\\Users\\efesn\\Desktop\\CrashView-Advanced\\api\\CrashViewAdvanced.Tests\\CrashViewAdvanced.Tests.csproj",
+              "RelativeDocumentMoniker": "api\\CrashViewAdvanced.Tests\\CrashViewAdvanced.Tests.csproj",
+              "ToolTip": "C:\\Users\\efesn\\Desktop\\CrashView-Advanced\\api\\CrashViewAdvanced.Tests\\CrashViewAdvanced.Tests.csproj",
+              "RelativeToolTip": "api\\CrashViewAdvanced.Tests\\CrashViewAdvanced.Tests.csproj",
+              "ViewState": "AQIAAAkAAAAAAAAAAAAAABgAAAANAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-01-10T02:01:57.343Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "AuthControllerTests.cs",
+              "DocumentMoniker": "C:\\Users\\efesn\\Desktop\\CrashView-Advanced\\api\\CrashViewAdvanced.Tests\\AuthControllerTests.cs",
+              "RelativeDocumentMoniker": "api\\CrashViewAdvanced.Tests\\AuthControllerTests.cs",
+              "ToolTip": "C:\\Users\\efesn\\Desktop\\CrashView-Advanced\\api\\CrashViewAdvanced.Tests\\AuthControllerTests.cs",
+              "RelativeToolTip": "api\\CrashViewAdvanced.Tests\\AuthControllerTests.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAADIAAAARAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-10T01:58:37.393Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "CrashViewAdvanced.Tests.csproj",
+              "DocumentMoniker": "C:\\Users\\efesn\\Desktop\\CrashView-Advanced\\CrashViewAdvanced.Tests\\CrashViewAdvanced.Tests.csproj",
+              "RelativeDocumentMoniker": "CrashViewAdvanced.Tests\\CrashViewAdvanced.Tests.csproj",
+              "ToolTip": "C:\\Users\\efesn\\Desktop\\CrashView-Advanced\\CrashViewAdvanced.Tests\\CrashViewAdvanced.Tests.csproj",
+              "RelativeToolTip": "CrashViewAdvanced.Tests\\CrashViewAdvanced.Tests.csproj",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-01-10T01:57:30.065Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "UnitTest1.cs",
+              "DocumentMoniker": "C:\\Users\\efesn\\Desktop\\CrashView-Advanced\\CrashViewAdvanced.Tests\\UnitTest1.cs",
+              "RelativeDocumentMoniker": "CrashViewAdvanced.Tests\\UnitTest1.cs",
+              "ToolTip": "C:\\Users\\efesn\\Desktop\\CrashView-Advanced\\CrashViewAdvanced.Tests\\UnitTest1.cs",
+              "RelativeToolTip": "CrashViewAdvanced.Tests\\UnitTest1.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-10T01:57:27.89Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\efesn\\Desktop\\CrashView-Advanced\\api\\Program.cs",
+              "RelativeDocumentMoniker": "api\\Program.cs",
+              "ToolTip": "C:\\Users\\efesn\\Desktop\\CrashView-Advanced\\api\\Program.cs",
+              "RelativeToolTip": "api\\Program.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAA8AAAByAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-01-10T01:52:49.688Z"
+            }
+          ]
+        },
+        {
+          "DockedWidth": 351,
+          "SelectedChildIndex": -1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{66f449b5-c823-40bc-9016-02b4d06a1a8e}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

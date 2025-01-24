@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 
 const LoginPage = () => {
   const navigate = useNavigate();
@@ -26,11 +27,31 @@ const LoginPage = () => {
         username: formData.username,
         password: formData.password,
       });
+
+      console.log('Login Response:', response.data);
   
-      // Store the username from the form data since that's what we sent
+      const token = response.data.token;
+      
+      // Store user information
       localStorage.setItem('username', formData.username);
-      localStorage.setItem('authToken', response.data.token);
+      localStorage.setItem('authToken', token);
       localStorage.setItem('isLoggedIn', 'true');
+      
+      // Decode the JWT token to get user claims including role
+      try {
+        const decodedToken = jwtDecode(token);
+        console.log('Decoded Token:', decodedToken);
+        
+        // The role claim might be in different places depending on your JWT structure
+        const role = decodedToken.role || decodedToken.Role || decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+        console.log('User Role from Token:', role);
+        
+        if (role) {
+          localStorage.setItem('role', role);
+        }
+      } catch (tokenError) {
+        console.error('Error decoding token:', tokenError);
+      }
 
       // Dispatch a custom event to notify navbar of login
       window.dispatchEvent(new Event('loginStateChange'));
@@ -42,6 +63,7 @@ const LoginPage = () => {
         navigate('/crashes');
       }, 1500);
     } catch (error) {
+      console.error('Login Error:', error.response?.data);
       if (error.response && error.response.data) {
         setNotification({ message: error.response.data.message || 'Login failed.', type: 'error' });
       } else {

@@ -6,6 +6,8 @@ import CrashesPage from './components/CrashesPage.js';
 import DiscussPage from './components/DiscussPage.js';
 import SignUpPage from './components/Signup.js';
 import LoginPage from './components/Login.js';
+import CreateCrashPage from './components/CreateCrashPage.js';
+import AdminRoute from './components/AdminRoute';
 
 function App() {
   return (
@@ -19,6 +21,14 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/crashes" element={<CrashesPage />} />
             <Route path="/discuss/:id" element={<DiscussPage />} />
+            <Route 
+              path="/admin/create-crash" 
+              element={
+                <AdminRoute>
+                  <CreateCrashPage />
+                </AdminRoute>
+              } 
+            />
           </Routes>
         </main>
       </div>

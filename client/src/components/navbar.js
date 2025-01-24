@@ -6,18 +6,23 @@ const Navbar = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const navigate = useNavigate();
 
   const checkLoginStatus = () => {
     const userLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
     const storedUsername = localStorage.getItem('username');
+    const userRole = localStorage.getItem('role');
+    
     if (userLoggedIn && storedUsername) {
       setIsLoggedIn(true);
       setUsername(storedUsername);
+      setIsAdmin(userRole === 'Admin');
     } else {
       setIsLoggedIn(false);
       setUsername('');
+      setIsAdmin(false);
     }
   };
 
@@ -70,6 +75,17 @@ const Navbar = () => {
               <NavLink to="/features">Features</NavLink>
               {isLoggedIn && username ? (
                 <>
+                  {isAdmin && (
+                    <NavLink 
+                      to="/admin/create-crash"
+                      style={{
+                        backgroundColor: '#000',
+                        marginRight: '8px'
+                      }}
+                    >
+                      Create Crash
+                    </NavLink>
+                  )}
                   <NavLink to="/profile">{username}'s Profile</NavLink>
                   <button
                     onClick={handleLogout}
@@ -134,6 +150,16 @@ const Navbar = () => {
             <MobileNavLink to="/features">Features</MobileNavLink>
             {isLoggedIn && username ? (
               <>
+                {isAdmin && (
+                  <MobileNavLink 
+                    to="/admin/create-crash"
+                    style={{
+                      backgroundColor: '#000'
+                    }}
+                  >
+                    Create Crash
+                  </MobileNavLink>
+                )}
                 <MobileNavLink to="/profile">{username}'s Profile</MobileNavLink>
                 <button
                   onClick={handleLogout}
