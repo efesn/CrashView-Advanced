@@ -174,43 +174,56 @@ function CreateCrashPage() {
     setError(null);
 
     try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        setError('No authentication token found. Please log in again.');
+        navigate('/admin/login');
+        return;
+      }
+
+      const config = {
+        headers: {
+          'Authorization': token,
+          'Content-Type': 'application/json'
+        }
+      };
+
       // First create the crash
       const crashResponse = await axios.post('https://localhost:7237/api/Crashes', {
         Date: new Date(formData.crash.date).toISOString(),
         Description: formData.crash.description,
         VideoUrl: formData.crash.videoUrl,
         DriversInCrash: formData.crash.driversInCrash
-      });
+      }, config);
 
       console.log('Crash created:', crashResponse.data);
 
-      const crashId = crashResponse.data.id;
-
-      // Then create the discussion with the crash ID
+      // Create discussion data
       const discussionData = {
-        CrashId: crashId,
         Title: formData.discussion.title,
         CreatedAt: new Date().toISOString(),
         UpdatedAt: new Date().toISOString(),
-        Comments: [], // Initialize empty comments array
-        Crash: {
-          Id: crashId
-        }
+        Comments: [],
+        CrashId: crashResponse.data.id,
+        Crash: crashResponse.data // Include the complete crash object
       };
 
-      // Only add poll if there's a question
+      // Create poll if there's a question
       if (formData.poll.question) {
-        discussionData.Poll = {
+        const pollData = {
           Question: formData.poll.question,
           Votes: [],
           CreatedAt: new Date().toISOString(),
-          DiscussionId: 0, // This will be set by the backend
-          Discussion: discussionData // Set up the circular reference properly
+          DiscussionId: 0
         };
+
+        // Set up circular reference properly
+        discussionData.Poll = pollData;
+        pollData.Discussion = discussionData;
       }
 
-      console.log('Sending discussion data:', discussionData); // Debug log
-      const discussionResponse = await axios.post('https://localhost:7237/api/Discussions', discussionData);
+      console.log('Sending discussion data:', discussionData);
+      const discussionResponse = await axios.post('https://localhost:7237/api/Discussions', discussionData, config);
 
       console.log('Discussion created:', discussionResponse.data);
 
@@ -218,7 +231,8 @@ function CreateCrashPage() {
       navigate(`/discuss/${discussionResponse.data.id}`);
     } catch (err) {
       console.error('API Error Response:', err.response?.data);
-      setError(err.response?.data?.message || err.response?.data || 'Failed to create crash and discussion');
+      const errorMessage = err.response?.data?.message || err.response?.data || 'Failed to create crash and discussion';
+      setError(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
     } finally {
       setLoading(false);
     }

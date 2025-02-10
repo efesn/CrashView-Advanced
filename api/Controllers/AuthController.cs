@@ -190,5 +190,110 @@ namespace CrashViewAdvanced.Controllers
             Response.Cookies.Delete("jwt");
             return Ok(new { message = "Logged out successfully" });
         }
+
+        [HttpPost("admin-login")]
+        public async Task<IActionResult> AdminLogin([FromBody] LoginDTO loginDto)
+        {
+            Console.WriteLine($"Received admin login request for user: {loginDto.UserName}"); // Debug log
+
+            try 
+            {
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == loginDto.UserName);
+
+                if (user == null)
+                {
+                    Console.WriteLine("User not found in database"); // Debug log
+                    return Unauthorized(new { message = "Invalid admin credentials" });
+                }
+
+                Console.WriteLine($"Found user with role: {user.Role}"); // Debug log
+
+                if (!VerifyPassword(loginDto.Password, user.PasswordHash))
+                {
+                    Console.WriteLine("Password verification failed"); // Debug log
+                    return Unauthorized(new { message = "Invalid admin credentials" });
+                }
+
+                Console.WriteLine("Password verified successfully"); // Debug log
+
+                if (user.Role != "Admin")
+                {
+                    Console.WriteLine($"User is not admin. Role: {user.Role}"); // Debug log
+                    return Unauthorized(new { message = "Access denied. Only administrators can access this area." });
+                }
+
+                var token = GenerateJwtToken(user);
+                Console.WriteLine("JWT token generated"); // Debug log
+
+                return Ok(new { 
+                    message = "Admin login successful",
+                    role = user.Role,
+                    token = token
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during admin login: {ex.Message}"); // Debug log
+                return StatusCode(500, new { message = "An error occurred during login" });
+            }
+        }
+
+        [HttpPost("create-initial-admin")]
+        public async Task<IActionResult> CreateInitialAdmin(RegistrationDTO registrationDto)
+        {
+            // Check if any admin user exists
+            var adminExists = await _context.Users.AnyAsync(u => u.Role == "Admin");
+            if (adminExists)
+            {
+                return BadRequest("Admin user already exists. Cannot create initial admin.");
+            }
+
+            var existingUser = await _context.Users
+                .FirstOrDefaultAsync(u => u.UserName == registrationDto.UserName);
+
+            if (existingUser != null)
+            {
+                return BadRequest("Username already exists.");
+            }
+
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(registrationDto.Password);
+
+            var adminUser = new User
+            {
+                UserName = registrationDto.UserName,
+                Email = registrationDto.Email,
+                PasswordHash = hashedPassword,
+                Role = "Admin"  // Explicitly set as Admin
+            };
+
+            _context.Users.Add(adminUser);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Initial admin user created successfully" });
+        }
+
+        [HttpGet("users")]
+        [Authorize]
+        public async Task<IActionResult> GetUsers()
+        {
+            var currentUsername = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var currentUser = await _context.Users.FirstOrDefaultAsync(u => u.UserName == currentUsername);
+            
+            if (currentUser?.Role != "Admin")
+            {
+                return Unauthorized("Only administrators can view user list.");
+            }
+
+            var users = await _context.Users
+                .Select(u => new {
+                    u.Id,
+                    u.UserName,
+                    u.Email,
+                    u.Role
+                })
+                .ToListAsync();
+
+            return Ok(users);
+        }
     }
 }
