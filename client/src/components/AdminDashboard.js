@@ -13,6 +13,7 @@ const AdminDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [comments, setComments] = useState([]);
 
   const styles = {
     container: {
@@ -116,6 +117,8 @@ const AdminDashboard = () => {
   useEffect(() => {
     if (activeTab === 'dashboard') {
       fetchStats();
+    } else if (activeTab === 'manage-comments') {
+      fetchComments();
     }
   }, [activeTab]);
 
@@ -167,6 +170,52 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchComments = async () => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        setError('No authentication token found. Please log in again.');
+        navigate('/admin/login');
+        return;
+      }
+
+      const config = {
+        headers: {
+          'Authorization': token
+        }
+      };
+
+      const commentsRes = await axios.get('https://localhost:7237/api/Comments', config);
+      const commentsData = commentsRes.data.$values || commentsRes.data;
+      
+      setComments(Array.isArray(commentsData) ? commentsData : []);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching comments:', err);
+      setError('Failed to fetch comments.');
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      const config = {
+        headers: {
+          'Authorization': token
+        }
+      };
+
+      await axios.delete(`https://localhost:7237/api/Comments/${commentId}`, config);
+      
+      // Update the local state to remove the deleted comment
+      setComments(prevComments => prevComments.filter(comment => comment.id !== commentId));
+    } catch (err) {
+      console.error('Error deleting comment:', err);
+      alert('Failed to delete comment. Please try again.');
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('adminToken');
     localStorage.removeItem('isAdminLoggedIn');
@@ -195,6 +244,56 @@ const AdminDashboard = () => {
               </div>
             </div>
           </>
+        );
+      case 'manage-comments':
+        return (
+          <div>
+            <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Manage Comments</h2>
+            {loading ? (
+              <div>Loading comments...</div>
+            ) : comments.length === 0 ? (
+              <div>No comments found.</div>
+            ) : (
+              <div style={{ display: 'grid', gap: '1rem' }}>
+                {comments.map(comment => (
+                  <div
+                    key={comment.id}
+                    style={{
+                      backgroundColor: 'white',
+                      padding: '1rem',
+                      borderRadius: '0.5rem',
+                      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div>
+                        <div style={{ fontSize: '1rem', marginBottom: '0.5rem', color: '#1a1a1a' }}>
+                          {comment.commentText}
+                        </div>
+                        <div style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+                          By: {comment.author} • {new Date(comment.createdAt).toLocaleString()}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteComment(comment.id)}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          backgroundColor: '#dc2626',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '0.375rem',
+                          cursor: 'pointer',
+                          fontSize: '0.875rem',
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         );
       case 'manage-users':
         return <div>Manage Users Content</div>;
@@ -240,6 +339,15 @@ const AdminDashboard = () => {
             onClick={() => setActiveTab('create-crash')}
           >
             <span>🚗</span> Create New Crash
+          </button>
+          <button
+            style={{
+              ...styles.tab,
+              ...(activeTab === 'manage-comments' ? styles.activeTab : {})
+            }}
+            onClick={() => setActiveTab('manage-comments')}
+          >
+            <span>💬</span> Manage Comments
           </button>
           <button
             style={{

@@ -188,51 +188,83 @@ function CreateCrashPage() {
         }
       };
 
+      console.log('Starting crash creation...');
+      
       // First create the crash
-      const crashResponse = await axios.post('https://localhost:7237/api/Crashes', {
+      const crashData = {
         Date: new Date(formData.crash.date).toISOString(),
         Description: formData.crash.description,
         VideoUrl: formData.crash.videoUrl,
-        DriversInCrash: formData.crash.driversInCrash
-      }, config);
+        DriversInCrash: formData.crash.driversInCrash.map(cd => {
+          const driver = drivers.find(d => d.id === cd.DriverId);
+          return {
+            ...cd,
+            Driver: {
+              Id: driver.id,
+              FirstName: driver.firstName,
+              LastName: driver.lastName,
+              TeamId: driver.teamId,
+              Team: driver.team
+            }
+          };
+        })
+      };
+      
+      console.log('Sending crash data:', crashData);
+      const crashResponse = await axios.post('https://localhost:7237/api/Crashes', crashData, config);
+      console.log('Crash created successfully:', crashResponse.data);
 
-      console.log('Crash created:', crashResponse.data);
-
-      // Create discussion data
+      // Create base discussion data
       const discussionData = {
+        Id: 0,
+        CrashId: crashResponse.data.id,
         Title: formData.discussion.title,
         CreatedAt: new Date().toISOString(),
         UpdatedAt: new Date().toISOString(),
         Comments: [],
-        CrashId: crashResponse.data.id,
-        Crash: crashResponse.data // Include the complete crash object
+        Crash: crashResponse.data,
+        Poll: null
       };
+
+      // Add CrashDrivers to the Crash object if they exist
+      if (crashResponse.data.driversInCrash && Array.isArray(crashResponse.data.driversInCrash)) {
+        discussionData.Crash.DriversInCrash = crashResponse.data.driversInCrash.map(cd => ({
+          ...cd,
+          Driver: drivers.find(d => d.id === cd.driverId) || drivers.find(d => d.id === cd.DriverId)
+        }));
+      }
 
       // Create poll if there's a question
       if (formData.poll.question) {
-        const pollData = {
+        discussionData.Poll = {
+          Id: 0,
+          DiscussionId: discussionData.Id, // Reference the discussion ID
           Question: formData.poll.question,
-          Votes: [],
           CreatedAt: new Date().toISOString(),
-          DiscussionId: 0
+          Votes: []
+          // Don't include the Discussion property to avoid circular reference
         };
-
-        // Set up circular reference properly
-        discussionData.Poll = pollData;
-        pollData.Discussion = discussionData;
       }
 
-      console.log('Sending discussion data:', discussionData);
-      const discussionResponse = await axios.post('https://localhost:7237/api/Discussions', discussionData, config);
+      console.log('Sending discussion data to:', 'https://localhost:7237/api/Discussions');
+      console.log('Discussion data:', JSON.stringify(discussionData, null, 2));
 
-      console.log('Discussion created:', discussionResponse.data);
+      const discussionResponse = await axios.post('https://localhost:7237/api/Discussions', discussionData, config);
+      console.log('Discussion created successfully:', discussionResponse.data);
 
       // Redirect to the new discussion page
       navigate(`/discuss/${discussionResponse.data.id}`);
     } catch (err) {
-      console.error('API Error Response:', err.response?.data);
-      const errorMessage = err.response?.data?.message || err.response?.data || 'Failed to create crash and discussion';
-      setError(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
+      console.error('Error details:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+        endpoint: err.config?.url,
+        method: err.config?.method
+      });
+      
+      const errorMessage = err.response?.data?.message || err.response?.data || err.message;
+      setError(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage, null, 2));
     } finally {
       setLoading(false);
     }

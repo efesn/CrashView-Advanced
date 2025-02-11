@@ -9,6 +9,9 @@ import LoginPage from './components/Login.js';
 import AdminLogin from './components/AdminLogin';
 import AdminDashboard from './components/AdminDashboard';
 import CreateCrashPage from './components/CreateCrashPage.js';
+import DriversPage from './components/DriversPage.js';
+import TeamsPage from './components/TeamsPage.js';
+import AboutPage from './components/AboutPage.js';
 
 // Admin route protection
 const AdminRoute = ({ children }) => {
@@ -63,6 +66,30 @@ function App() {
               <Navbar />
               <main style={{ padding: '2rem' }}>
                 <CrashesPage />
+              </main>
+            </>
+          } />
+          <Route path="/drivers" element={
+            <>
+              <Navbar />
+              <main style={{ padding: '2rem' }}>
+                <DriversPage />
+              </main>
+            </>
+          } />
+          <Route path="/teams" element={
+            <>
+              <Navbar />
+              <main style={{ padding: '2rem' }}>
+                <TeamsPage />
+              </main>
+            </>
+          } />
+          <Route path="/about" element={
+            <>
+              <Navbar />
+              <main>
+                <AboutPage />
               </main>
             </>
           } />

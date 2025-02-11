@@ -19,11 +19,9 @@ function DiscussPage() {
         
         console.log('Discussion Data:', discussionData); // Debug log
 
-        // Ensure comments is always an array
-        const commentsArray = Array.isArray(discussionData.comments) 
-          ? discussionData.comments 
-          : [];
-
+        // Extract comments from the discussion data
+        const commentsArray = discussionData.comments?.$values || discussionData.comments || [];
+        
         setDiscussion(discussionData);
         setComments(commentsArray);
         setPoll(discussionData.poll);
@@ -247,36 +245,48 @@ function DiscussPage() {
           </form>
 
           {/* Comments List */}
-<div>
-  {!comments || comments.length === 0 ? (
-    <p style={{ color: '#666', textAlign: 'center' }}>
-      Be the first to comment on this crash!
-    </p>
-  ) : (
-    Array.isArray(comments) && comments.map(comment => (
-      <div
-        key={comment.id}
-        style={{
-          padding: '15px',
-          borderBottom: '1px solid #eee',
-          marginBottom: '15px'
-        }}
-      >
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          marginBottom: '8px'
-        }}>
-          <strong>{comment.author}</strong>
-        </div>
-        <p>{comment.commentText}</p>
-        <small style={{ color: '#777' }}>
-          {new Date(comment.createdAt).toLocaleString()}
-        </small>
-      </div>
-    ))
-  )}
-</div>  
+          <div>
+            {!comments || comments.length === 0 ? (
+              <p style={{ color: '#666', textAlign: 'center' }}>
+                Be the first to comment on this crash!
+              </p>
+            ) : (
+              comments.map(comment => (
+                <div
+                  key={comment.id}
+                  style={{
+                    padding: '20px',
+                    marginBottom: '20px',
+                    backgroundColor: 'white',
+                    borderRadius: '8px',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                    border: '1px solid #eee'
+                  }}
+                >
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    marginBottom: '10px',
+                    padding: '0 0 8px 0',
+                    borderBottom: '1px solid #eee'
+                  }}>
+                    <strong style={{ color: '#C40500' }}>{comment.author}</strong>
+                    <small style={{ color: '#777', marginLeft: 'auto' }}>
+                      {new Date(comment.createdAt).toLocaleString()}
+                    </small>
+                  </div>
+                  <p style={{ 
+                    margin: '0',
+                    fontSize: '1rem',
+                    lineHeight: '1.5',
+                    color: '#333'
+                  }}>
+                    {comment.commentText}
+                  </p>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -72,7 +72,6 @@ const Navbar = () => {
               <NavLink to="/drivers">Drivers</NavLink>
               <NavLink to="/teams">Teams</NavLink>
               <NavLink to="/about">About Us</NavLink>
-              <NavLink to="/features">Features</NavLink>
               {isLoggedIn && username ? (
                 <>
                   {isAdmin && (
