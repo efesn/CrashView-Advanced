@@ -146,7 +146,6 @@ const Navbar = () => {
             <MobileNavLink to="/drivers">Drivers</MobileNavLink>
             <MobileNavLink to="/teams">Teams</MobileNavLink>
             <MobileNavLink to="/about">About Us</MobileNavLink>
-            <MobileNavLink to="/features">Features</MobileNavLink>
             {isLoggedIn && username ? (
               <>
                 {isAdmin && (

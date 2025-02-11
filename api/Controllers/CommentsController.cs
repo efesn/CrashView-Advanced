@@ -38,10 +38,24 @@ public class CommentsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Comment>> PostComment(Comment comment)
     {
+        // Set CreatedAt if not provided
+        if (comment.CreatedAt == default)
+        {
+            comment.CreatedAt = DateTime.UtcNow;
+        }
+
+        // Clear the navigation property to prevent validation error
+        comment.Discussion = null;
+
         _context.Comments.Add(comment);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetComment), new { id = comment.Id }, comment);
+        // Fetch the complete comment with discussion for the response
+        var createdComment = await _context.Comments
+            .Include(c => c.Discussion)
+            .FirstOrDefaultAsync(c => c.Id == comment.Id);
+
+        return CreatedAtAction(nameof(GetComment), new { id = comment.Id }, createdComment);
     }
 
     // PUT: api/Comments/5

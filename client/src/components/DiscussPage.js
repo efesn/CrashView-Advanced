@@ -43,25 +43,44 @@ function DiscussPage() {
 
     try {
       const username = localStorage.getItem('username');
-      const response = await axios.post('https://localhost:7237/api/Comments', {
-        discussionId: parseInt(id),
-        author: username,
-        commentText: newComment,
-        createdAt: new Date().toISOString()
-      });
+      if (!username) {
+        alert('Please log in to comment');
+        return;
+      }
 
-      // Add the new comment to the list
-      setComments(prevComments => [{
+      const commentData = {
+        DiscussionId: parseInt(id),
+        Author: username,
+        CommentText: newComment
+      };
+
+      console.log('Sending comment data:', commentData); // Debug log
+
+      const response = await axios.post('https://localhost:7237/api/Comments', commentData);
+      console.log('Comment response:', response.data); // Debug log
+
+      // Add the new comment to the list with consistent property casing
+      const newCommentObj = {
         id: response.data.id,
-        author: username,
-        commentText: newComment,
-        createdAt: new Date().toISOString(),
-        discussionId: parseInt(id)
-      }, ...prevComments]);
+        author: response.data.author,
+        commentText: response.data.commentText,
+        createdAt: response.data.createdAt,
+        discussionId: response.data.discussionId
+      };
+
+      // Update the comments state with the new comment at the beginning
+      setComments(prevComments => {
+        const updatedComments = Array.isArray(prevComments) ? [newCommentObj, ...prevComments] : [newCommentObj];
+        return updatedComments;
+      });
       
       setNewComment('');
     } catch (error) {
       console.error('Error submitting comment:', error);
+      if (error.response?.data) {
+        console.error('Server error details:', error.response.data);
+      }
+      alert('Failed to post comment. Please try again.');
     }
   };
 

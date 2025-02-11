@@ -6,5 +6,5 @@
     public string CommentText { get; set; }
     public DateTime CreatedAt { get; set; }
 
-    public Discussion Discussion { get; set; }  
+    public Discussion? Discussion { get; set; }
 }
