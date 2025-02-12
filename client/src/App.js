@@ -8,10 +8,10 @@ import SignUpPage from './components/Signup.js';
 import LoginPage from './components/Login.js';
 import AdminLogin from './components/AdminLogin';
 import AdminDashboard from './components/AdminDashboard';
-import CreateCrashPage from './components/CreateCrashPage.js';
 import DriversPage from './components/DriversPage.js';
 import TeamsPage from './components/TeamsPage.js';
 import AboutPage from './components/AboutPage.js';
+import CreateCrashPage from './components/CreateCrashPage.js';
 
 // Admin route protection
 const AdminRoute = ({ children }) => {
@@ -30,7 +30,7 @@ function App() {
             <AdminRoute>
               <Routes>
                 <Route path="dashboard" element={<AdminDashboard />} />
-                <Route path="create-crash" element={<CreateCrashPage />} />
+                {/* Remove the create-crash route since it's now handled in the dashboard */}
                 {/* Add more admin routes here */}
               </Routes>
             </AdminRoute>

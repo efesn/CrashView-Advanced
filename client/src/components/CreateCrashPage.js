@@ -1,416 +1,342 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-
-// Common styles object
-const styles = {
-  container: {
-    maxWidth: '800px',
-    margin: '0 auto',
-    padding: '40px 20px',
-    backgroundColor: '#ffffff',
-    borderRadius: '8px',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)'
-  },
-  title: {
-    fontSize: '2rem',
-    marginBottom: '32px',
-    fontWeight: '600',
-    color: '#1a1a1a',
-    borderBottom: '2px solid #f0f0f0',
-    paddingBottom: '16px'
-  },
-  sectionTitle: {
-    fontSize: '1.5rem',
-    marginBottom: '24px',
-    color: '#2d2d2d',
-    fontWeight: '500'
-  },
-  formGroup: {
-    marginBottom: '24px'
-  },
-  label: {
-    display: 'block',
-    marginBottom: '8px',
-    fontWeight: '500',
-    color: '#4a4a4a'
-  },
-  input: {
-    width: '100%',
-    padding: '12px',
-    borderRadius: '6px',
-    border: '1px solid #e0e0e0',
-    fontSize: '1rem',
-    transition: 'border-color 0.2s, box-shadow 0.2s',
-    backgroundColor: '#fafafa',
-    '&:focus': {
-      outline: 'none',
-      borderColor: '#000000',
-      boxShadow: '0 0 0 2px rgba(0, 0, 0, 0.1)'
-    }
-  },
-  textarea: {
-    minHeight: '120px',
-    resize: 'vertical'
-  },
-  select: {
-    minHeight: '120px'
-  },
-  errorContainer: {
-    color: '#dc2626',
-    backgroundColor: '#fef2f2',
-    padding: '16px',
-    borderRadius: '6px',
-    marginBottom: '24px',
-    border: '1px solid #fee2e2'
-  },
-  section: {
-    backgroundColor: '#fafafa',
-    padding: '24px',
-    borderRadius: '8px',
-    marginBottom: '32px',
-    border: '1px solid #f0f0f0'
-  },
-  helpText: {
-    color: '#666666',
-    fontSize: '0.875rem',
-    marginTop: '6px'
-  },
-  submitButton: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '14px 28px',
-    backgroundColor: '#000000',
-    color: 'white',
-    border: 'none',
-    borderRadius: '6px',
-    cursor: 'pointer',
-    fontSize: '1rem',
-    fontWeight: '500',
-    width: '100%',
-    transition: 'all 0.2s',
-    '&:hover': {
-      backgroundColor: '#1a1a1a'
-    },
-    '&:disabled': {
-      backgroundColor: '#666666',
-      cursor: 'not-allowed'
-    }
-  }
-};
+import { useNavigate } from 'react-router-dom';
 
 function CreateCrashPage() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [drivers, setDrivers] = useState([]);
-  const [formData, setFormData] = useState({
-    crash: {
-      description: '',
-      videoUrl: '',
-      date: new Date().toISOString().split('T')[0],
-      driversInCrash: []
-    },
-    discussion: {
-      title: '',
-    },
-    poll: {
-      question: '',
-    }
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedDrivers, setSelectedDrivers] = useState([]);
+  const [createdCrash, setCreatedCrash] = useState(null);
+
+  const [crashFormData, setCrashFormData] = useState({
+    date: new Date().toISOString().split('T')[0],
+    description: '',
+    videoUrl: ''
   });
 
-  // Fetch drivers when component mounts
+  const [discussionFormData, setDiscussionFormData] = useState({
+    title: '',
+    pollQuestion: '',
+    pollOptions: ['Responsible', 'Not Responsible', 'Racing Incident']
+  });
+
   useEffect(() => {
     const fetchDrivers = async () => {
       try {
         const response = await axios.get('https://localhost:7237/api/Drivers');
-        console.log('Drivers response:', response.data); // Debug log
-        // Check if the data is in $values property (common in .NET responses)
         const driversData = response.data.$values || response.data;
         setDrivers(Array.isArray(driversData) ? driversData : []);
+        setLoading(false);
       } catch (err) {
         console.error('Error fetching drivers:', err);
         setError('Failed to load drivers');
+        setLoading(false);
       }
     };
 
     fetchDrivers();
   }, []);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    const [section, field] = name.split('.');
-    
-    setFormData(prev => ({
-      ...prev,
-      [section]: {
-        ...prev[section],
-        [field]: value
+  const handleDriverSelect = (driverId) => {
+    const driverInfo = {
+      driverId: parseInt(driverId),
+      damageLevel: 1,
+      isResponsible: false,
+      injuryStatus: false
+    };
+
+    setSelectedDrivers(prev => {
+      const exists = prev.find(d => d.driverId === driverInfo.driverId);
+      if (exists) {
+        return prev.filter(d => d.driverId !== driverInfo.driverId);
       }
+      return [...prev, driverInfo];
+    });
+  };
+
+  const updateDriverInfo = (driverId, field, value) => {
+    setSelectedDrivers(prev => prev.map(driver => {
+      if (driver.driverId === driverId) {
+        return { ...driver, [field]: value };
+      }
+      return driver;
     }));
   };
 
-  const handleDriverSelection = (e) => {
-    const selectedOptions = Array.from(e.target.selectedOptions).map(option => ({
-      DriverId: parseInt(option.value),
-      DamageLevel: 1, // Integer value: 1 = Minor, 2 = Moderate, 3 = Severe
-      IsResponsible: false,
-      InjuryStatus: false
-    }));
-
-    setFormData(prev => ({
-      ...prev,
-      crash: {
-        ...prev.crash,
-        driversInCrash: selectedOptions
-      }
-    }));
-  };
-
-  const handleSubmit = async (e) => {
+  const handleCrashSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-
+    
     try {
-      const token = localStorage.getItem('adminToken');
-      if (!token) {
-        setError('No authentication token found. Please log in again.');
-        navigate('/admin/login');
-        return;
-      }
-
-      const config = {
-        headers: {
-          'Authorization': token,
-          'Content-Type': 'application/json'
-        }
-      };
-
-      console.log('Starting crash creation...');
-      
-      // First create the crash
       const crashData = {
-        Date: new Date(formData.crash.date).toISOString(),
-        Description: formData.crash.description,
-        VideoUrl: formData.crash.videoUrl,
-        DriversInCrash: formData.crash.driversInCrash.map(cd => {
-          const driver = drivers.find(d => d.id === cd.DriverId);
-          return {
-            ...cd,
-            Driver: {
-              Id: driver.id,
-              FirstName: driver.firstName,
-              LastName: driver.lastName,
-              TeamId: driver.teamId,
-              Team: driver.team
-            }
-          };
-        })
-      };
-      
-      console.log('Sending crash data:', crashData);
-      const crashResponse = await axios.post('https://localhost:7237/api/Crashes', crashData, config);
-      console.log('Crash created successfully:', crashResponse.data);
-
-      // Create base discussion data
-      const discussionData = {
-        Id: 0,
-        CrashId: crashResponse.data.id,
-        Title: formData.discussion.title,
-        CreatedAt: new Date().toISOString(),
-        UpdatedAt: new Date().toISOString(),
-        Comments: [],
-        Crash: crashResponse.data,
-        Poll: null
+        date: new Date(crashFormData.date).toISOString(),
+        description: crashFormData.description,
+        videoUrl: crashFormData.videoUrl,
+        driversInCrash: selectedDrivers
       };
 
-      // Add CrashDrivers to the Crash object if they exist
-      if (crashResponse.data.driversInCrash && Array.isArray(crashResponse.data.driversInCrash)) {
-        discussionData.Crash.DriversInCrash = crashResponse.data.driversInCrash.map(cd => ({
-          ...cd,
-          Driver: drivers.find(d => d.id === cd.driverId) || drivers.find(d => d.id === cd.DriverId)
-        }));
-      }
-
-      // Create poll if there's a question
-      if (formData.poll.question) {
-        discussionData.Poll = {
-          Id: 0,
-          DiscussionId: discussionData.Id, // Reference the discussion ID
-          Question: formData.poll.question,
-          CreatedAt: new Date().toISOString(),
-          Votes: []
-          // Don't include the Discussion property to avoid circular reference
-        };
-      }
-
-      console.log('Sending discussion data to:', 'https://localhost:7237/api/Discussions');
-      console.log('Discussion data:', JSON.stringify(discussionData, null, 2));
-
-      const discussionResponse = await axios.post('https://localhost:7237/api/Discussions', discussionData, config);
-      console.log('Discussion created successfully:', discussionResponse.data);
-
-      // Redirect to the new discussion page
-      navigate(`/discuss/${discussionResponse.data.id}`);
+      const response = await axios.post('https://localhost:7237/api/Crashes', crashData);
+      setCreatedCrash(response.data);
+      setError(null);
     } catch (err) {
-      console.error('Error details:', {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status,
-        endpoint: err.config?.url,
-        method: err.config?.method
-      });
-      
-      const errorMessage = err.response?.data?.message || err.response?.data || err.message;
-      setError(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage, null, 2));
-    } finally {
-      setLoading(false);
+      console.error('Error creating crash:', err);
+      setError('Failed to create crash');
     }
   };
 
+  const handleDiscussionSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!createdCrash) {
+      setError('Please create a crash first');
+      return;
+    }
+
+    try {
+      const discussionData = {
+        crashId: createdCrash.id,
+        title: discussionFormData.title,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        comments: [],
+        poll: {
+          question: discussionFormData.pollQuestion,
+          createdAt: new Date().toISOString(),
+          votes: []
+        }
+      };
+
+      await axios.post('https://localhost:7237/api/Discussions', discussionData);
+      navigate('/crashes');
+    } catch (err) {
+      console.error('Error creating discussion:', err);
+      setError('Failed to create discussion');
+    }
+  };
+
+  if (loading) return <div>Loading drivers...</div>;
+  if (error) return <div style={{ color: 'red' }}>{error}</div>;
+
   return (
-    <div style={styles.container}>
-      <h1 style={styles.title}>Create New Crash Discussion</h1>
+    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
+      <h1 style={{ marginBottom: '20px' }}>Create New Crash</h1>
 
-      {error && (
-        <div style={styles.errorContainer}>
-          {typeof error === 'object' ? JSON.stringify(error, null, 2) : error}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit}>
-        {/* Crash Details Section */}
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>Crash Details</h2>
-          
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Description:</label>
-            <textarea
-              name="crash.description"
-              value={formData.crash.description}
-              onChange={handleChange}
-              required
-              style={{...styles.input, ...styles.textarea}}
-              placeholder="Describe what happened in the crash..."
-            />
-          </div>
-
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Video URL:</label>
-            <input
-              type="url"
-              name="crash.videoUrl"
-              value={formData.crash.videoUrl}
-              onChange={handleChange}
-              required
-              style={styles.input}
-              placeholder="https://example.com/video.mp4"
-            />
-          </div>
-
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Date:</label>
+      {/* Crash Form */}
+      <form onSubmit={handleCrashSubmit} style={{ 
+        marginBottom: '40px',
+        padding: '20px',
+        border: '1px solid #ddd',
+        borderRadius: '8px',
+        backgroundColor: createdCrash ? '#f8f8f8' : 'white'
+      }}>
+        <h2>Step 1: Create Crash</h2>
+        <div style={{ marginBottom: '20px' }}>
+          <div style={{ marginBottom: '10px' }}>
+            <label>Date:</label>
             <input
               type="date"
-              name="crash.date"
-              value={formData.crash.date}
-              onChange={handleChange}
+              value={crashFormData.date}
+              onChange={(e) => setCrashFormData({ ...crashFormData, date: e.target.value })}
               required
-              style={styles.input}
+              disabled={createdCrash}
+              style={{ width: '100%', padding: '8px', marginTop: '4px' }}
             />
           </div>
 
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Drivers Involved:</label>
-            <select
-              multiple
-              onChange={handleDriverSelection}
+          <div style={{ marginBottom: '10px' }}>
+            <label>Description:</label>
+            <textarea
+              value={crashFormData.description}
+              onChange={(e) => setCrashFormData({ ...crashFormData, description: e.target.value })}
               required
-              style={{...styles.input, ...styles.select}}
-            >
-              {Array.isArray(drivers) && drivers.length > 0 ? (
-                drivers.map(driver => (
-                  <option key={driver.id} value={driver.id}>
-                    {driver.firstName} {driver.lastName} - {driver.team?.name || 'No Team'}
-                  </option>
-                ))
-              ) : (
-                <option disabled>No drivers available</option>
-              )}
-            </select>
-            <small style={styles.helpText}>
-              Hold Ctrl (Windows) or Cmd (Mac) to select multiple drivers. Selected drivers will be marked as involved in the crash.
-            </small>
+              disabled={createdCrash}
+              style={{ width: '100%', padding: '8px', marginTop: '4px', minHeight: '100px' }}
+            />
           </div>
 
-          {formData.crash.driversInCrash.length > 0 && (
-            <div style={styles.formGroup}>
-              <label style={styles.label}>Selected Drivers:</label>
-              <div style={{
-                backgroundColor: '#ffffff',
-                padding: '12px',
-                borderRadius: '6px',
-                border: '1px solid #e0e0e0'
-              }}>
-                {formData.crash.driversInCrash.map(crashDriver => {
-                  const driver = drivers.find(d => d.id === crashDriver.DriverId);
-                  return driver ? (
-                    <div key={driver.id} style={{ marginBottom: '8px' }}>
-                      {driver.firstName} {driver.lastName} - {driver.team?.name || 'No Team'}
-                    </div>
-                  ) : null;
-                })}
+          <div style={{ marginBottom: '10px' }}>
+            <label>Video URL:</label>
+            <input
+              type="url"
+              value={crashFormData.videoUrl}
+              onChange={(e) => setCrashFormData({ ...crashFormData, videoUrl: e.target.value })}
+              required
+              disabled={createdCrash}
+              style={{ width: '100%', padding: '8px', marginTop: '4px' }}
+            />
+          </div>
+        </div>
+
+        {/* Driver Selection */}
+        <div style={{ marginBottom: '20px' }}>
+          <h3>Involved Drivers</h3>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+            gap: '10px',
+            marginBottom: '20px'
+          }}>
+            {drivers.map(driver => (
+              <div 
+                key={driver.id}
+                style={{
+                  padding: '10px',
+                  border: selectedDrivers.find(d => d.driverId === driver.id) 
+                    ? '2px solid #C40500' 
+                    : '1px solid #ddd',
+                  borderRadius: '4px',
+                  cursor: createdCrash ? 'not-allowed' : 'pointer',
+                  opacity: createdCrash ? 0.7 : 1
+                }}
+                onClick={() => !createdCrash && handleDriverSelect(driver.id)}
+              >
+                {driver.firstName} {driver.lastName}
               </div>
-            </div>
-          )}
+            ))}
+          </div>
+
+          {/* Driver Details */}
+          {selectedDrivers.map(driver => {
+            const driverInfo = drivers.find(d => d.id === driver.driverId);
+            return (
+              <div key={driver.driverId} style={{ 
+                marginBottom: '15px', 
+                padding: '20px', 
+                border: '1px solid #ddd',
+                borderRadius: '8px',
+                backgroundColor: 'white'
+              }}>
+                <h3 style={{ 
+                  marginBottom: '15px',
+                  color: '#333',
+                  borderBottom: '2px solid #C40500',
+                  paddingBottom: '8px'
+                }}>
+                  {driverInfo?.firstName} {driverInfo?.lastName}
+                </h3>
+                
+                <div style={{ 
+                  display: 'grid',
+                  gap: '15px'
+                }}>
+                  <div style={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px'
+                  }}>
+                    <label>Damage Level (1-5):</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="5"
+                      value={driver.damageLevel}
+                      onChange={(e) => updateDriverInfo(driver.driverId, 'damageLevel', parseInt(e.target.value))}
+                      disabled={createdCrash}
+                      style={{ 
+                        width: '60px',
+                        padding: '5px',
+                        border: '1px solid #ddd',
+                        borderRadius: '4px'
+                      }}
+                    />
+                  </div>
+
+                  <div style={{ 
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px'
+                  }}>
+                    <label style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      cursor: createdCrash ? 'not-allowed' : 'pointer'
+                    }}>
+                      <input
+                        type="checkbox"
+                        checked={driver.injuryStatus}
+                        onChange={(e) => updateDriverInfo(driver.driverId, 'injuryStatus', e.target.checked)}
+                        disabled={createdCrash}
+                        style={{
+                          width: '18px',
+                          height: '18px',
+                          cursor: createdCrash ? 'not-allowed' : 'pointer'
+                        }}
+                      />
+                      <span>Injured</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
 
-        {/* Discussion Section */}
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>Discussion Details</h2>
-          
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Discussion Title:</label>
+        <button
+          type="submit"
+          disabled={createdCrash}
+          style={{
+            backgroundColor: createdCrash ? '#888' : '#C40500',
+            color: 'white',
+            padding: '10px 20px',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: createdCrash ? 'not-allowed' : 'pointer',
+            fontSize: '16px'
+          }}
+        >
+          {createdCrash ? 'Crash Created' : 'Create Crash'}
+        </button>
+      </form>
+
+      {/* Discussion Form */}
+      <form onSubmit={handleDiscussionSubmit} style={{ 
+        padding: '20px',
+        border: '1px solid #ddd',
+        borderRadius: '8px',
+        opacity: createdCrash ? 1 : 0.5,
+        pointerEvents: createdCrash ? 'auto' : 'none'
+      }}>
+        <h2>Step 2: Create Discussion</h2>
+        <div style={{ marginBottom: '20px' }}>
+          <div style={{ marginBottom: '10px' }}>
+            <label>Discussion Title:</label>
             <input
               type="text"
-              name="discussion.title"
-              value={formData.discussion.title}
-              onChange={handleChange}
+              value={discussionFormData.title}
+              onChange={(e) => setDiscussionFormData({ ...discussionFormData, title: e.target.value })}
               required
-              style={styles.input}
-              placeholder="Enter a title for the discussion..."
+              style={{ width: '100%', padding: '8px', marginTop: '4px' }}
             />
           </div>
-        </div>
 
-        {/* Poll Section */}
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>Poll (Optional)</h2>
-          
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Poll Question:</label>
+          <div style={{ marginBottom: '10px' }}>
+            <label>Poll Question:</label>
             <input
               type="text"
-              name="poll.question"
-              value={formData.poll.question}
-              onChange={handleChange}
-              style={styles.input}
-              placeholder="e.g., Who was at fault in this incident?"
+              value={discussionFormData.pollQuestion}
+              onChange={(e) => setDiscussionFormData({ ...discussionFormData, pollQuestion: e.target.value })}
+              required
+              style={{ width: '100%', padding: '8px', marginTop: '4px' }}
+              placeholder="e.g., Who was responsible for the crash?"
             />
           </div>
         </div>
 
         <button
           type="submit"
-          disabled={loading}
           style={{
-            ...styles.submitButton,
-            backgroundColor: loading ? '#666666' : '#000000'
+            backgroundColor: '#C40500',
+            color: 'white',
+            padding: '10px 20px',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontSize: '16px'
           }}
         >
-          {loading ? 'Creating...' : 'Create Crash Discussion'}
+          Create Discussion
         </button>
       </form>
     </div>

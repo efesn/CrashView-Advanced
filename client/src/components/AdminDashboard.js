@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import CreateCrashPage from './CreateCrashPage';
 
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -222,10 +223,12 @@ const AdminDashboard = () => {
     navigate('/admin/login');
   };
 
+  const handleTabClick = (tab) => {
+    setActiveTab(tab);
+  };
+
   const renderContent = () => {
     switch (activeTab) {
-      case 'create-crash':
-        return <CreateCrashPage />;
       case 'dashboard':
         return (
           <>
@@ -245,6 +248,8 @@ const AdminDashboard = () => {
             </div>
           </>
         );
+      case 'create-crash':
+        return <CreateCrashPage />;
       case 'manage-comments':
         return (
           <div>
@@ -327,7 +332,7 @@ const AdminDashboard = () => {
               ...styles.tab,
               ...(activeTab === 'dashboard' ? styles.activeTab : {})
             }}
-            onClick={() => setActiveTab('dashboard')}
+            onClick={() => handleTabClick('dashboard')}
           >
             <span>📊</span> Dashboard Overview
           </button>
@@ -336,7 +341,7 @@ const AdminDashboard = () => {
               ...styles.tab,
               ...(activeTab === 'create-crash' ? styles.activeTab : {})
             }}
-            onClick={() => setActiveTab('create-crash')}
+            onClick={() => handleTabClick('create-crash')}
           >
             <span>🚗</span> Create New Crash
           </button>
@@ -345,7 +350,7 @@ const AdminDashboard = () => {
               ...styles.tab,
               ...(activeTab === 'manage-comments' ? styles.activeTab : {})
             }}
-            onClick={() => setActiveTab('manage-comments')}
+            onClick={() => handleTabClick('manage-comments')}
           >
             <span>💬</span> Manage Comments
           </button>
@@ -354,7 +359,7 @@ const AdminDashboard = () => {
               ...styles.tab,
               ...(activeTab === 'manage-users' ? styles.activeTab : {})
             }}
-            onClick={() => setActiveTab('manage-users')}
+            onClick={() => handleTabClick('manage-users')}
           >
             <span>👥</span> Manage Users
           </button>
@@ -363,7 +368,7 @@ const AdminDashboard = () => {
               ...styles.tab,
               ...(activeTab === 'reports' ? styles.activeTab : {})
             }}
-            onClick={() => setActiveTab('reports')}
+            onClick={() => handleTabClick('reports')}
           >
             <span>📈</span> View Reports
           </button>

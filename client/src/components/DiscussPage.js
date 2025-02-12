@@ -210,7 +210,7 @@ function DiscussPage() {
                 <div style={{ marginTop: '20px' }}>
                   <h4>Current Votes:</h4>
                   {Object.entries(
-                    poll.votes.reduce((acc, vote) => {
+                    (Array.isArray(poll.votes) ? poll.votes : []).reduce((acc, vote) => {
                       acc[vote.voteOption] = (acc[vote.voteOption] || 0) + 1;
                       return acc;
                     }, {})

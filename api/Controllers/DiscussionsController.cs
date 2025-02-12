@@ -18,7 +18,11 @@ public class DiscussionsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Discussion>>> GetDiscussions()
     {
-        return await _context.Discussions.Include(d => d.Comments).Include(d => d.Poll).ToListAsync();
+        return await _context.Discussions
+            .Include(d => d.Comments)
+            .Include(d => d.Poll)
+                .ThenInclude(p => p.Votes)
+            .ToListAsync();
     }
 
     // GET By Id
@@ -28,6 +32,7 @@ public class DiscussionsController : ControllerBase
         var discussion = await _context.Discussions
             .Include(d => d.Comments)
             .Include(d => d.Poll)
+                .ThenInclude(p => p.Votes)
             .FirstOrDefaultAsync(d => d.Id == id);
 
         if (discussion == null)
@@ -42,28 +47,20 @@ public class DiscussionsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Discussion>> PostDiscussion(Discussion discussion)
     {
+        discussion.Comments = new List<Comment>();
+
         if (discussion.Poll != null)
         {
-            // Set the DiscussionId to 0 to ensure EF Core treats it as a new entity
-            discussion.Poll.DiscussionId = 0;
-            discussion.Poll.Discussion = null; // Remove circular reference
+            discussion.Poll.Votes = new List<PollVote>();
         }
 
         _context.Discussions.Add(discussion);
         await _context.SaveChangesAsync();
 
-        // After saving, EF Core will have populated the Discussion.Id
-        // Update the Poll's DiscussionId if it exists
-        if (discussion.Poll != null)
-        {
-            discussion.Poll.DiscussionId = discussion.Id;
-            await _context.SaveChangesAsync();
-        }
-
-        // Load the complete discussion with related data for the response
         var createdDiscussion = await _context.Discussions
             .Include(d => d.Comments)
             .Include(d => d.Poll)
+                .ThenInclude(p => p.Votes)
             .FirstOrDefaultAsync(d => d.Id == discussion.Id);
 
         return CreatedAtAction(nameof(GetDiscussion), new { id = discussion.Id }, createdDiscussion);

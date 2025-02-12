@@ -8,7 +8,7 @@ public class Discussion
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
-    public Crash Crash { get; set; }  
-    public ICollection<Comment> Comments { get; set; }  
-    public Poll Poll { get; set; } 
+    public Crash? Crash { get; set; }  
+    public ICollection<Comment>? Comments { get; set; }  
+    public Poll? Poll { get; set; } 
 }
