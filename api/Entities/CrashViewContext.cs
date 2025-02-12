@@ -44,16 +44,18 @@ public partial class CrashViewContext : DbContext
 
         modelBuilder.Entity<CrashDriver>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__CrashDri__3214EC07DF0213DC");
-
+            entity.HasKey(e => e.Id);
             entity.ToTable("CrashDriver");
 
-            entity.Property(e => e.DamageLevel).HasMaxLength(20);
-            entity.Property(e => e.RoleInCrash).HasMaxLength(20);
-
-            entity.HasOne(d => d.Crash).WithMany(p => p.CrashDrivers)
+            entity.HasOne(d => d.Crash)
+                .WithMany(p => p.CrashDrivers)
                 .HasForeignKey(d => d.CrashId)
-                .HasConstraintName("FK_CrashDriver_Crash");
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(d => d.Driver)
+                .WithMany(p => p.CrashDrivers)
+                .HasForeignKey(d => d.DriverId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         OnModelCreatingPartial(modelBuilder);

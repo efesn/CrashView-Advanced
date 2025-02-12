@@ -18,6 +18,9 @@ function DiscussPage() {
         const discussionData = discussionResponse.data;
         
         console.log('Discussion Data:', discussionData); // Debug log
+        console.log('Crash Data:', discussionData.crash); // Debug crash data
+        console.log('Video URL:', discussionData.crash?.videoUrl); // Debug video URL
+        console.log('Description:', discussionData.crash?.description); // Debug description
 
         // Extract comments from the discussion data
         const commentsArray = discussionData.comments?.$values || discussionData.comments || [];
@@ -101,6 +104,13 @@ function DiscussPage() {
     }
   };
 
+  const getYouTubeVideoId = (url) => {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
   if (!discussion) return <div>Discussion not found</div>;
@@ -111,40 +121,78 @@ function DiscussPage() {
         <h1 style={{ fontSize: '2rem', marginBottom: '20px' }}>{discussion.title}</h1>
 
         {/* Video Player */}
-        <div style={{
-          width: '100%',
-          aspectRatio: '16/9',
-          backgroundColor: '#000',
-          marginBottom: '20px',
-          borderRadius: '8px',
-          overflow: 'hidden'
+        <div style={{ 
+          maxWidth: '800px', // Reduced from 1200px
+          margin: '0 auto',
+          marginBottom: '20px'
         }}>
-          {discussion.crash?.videoUrl ? (
-            <video
-              controls
-              style={{ width: '100%', height: '100%' }}
-            >
-              <source src={discussion.crash.videoUrl} type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
-          ) : (
-            <div style={{ 
-              width: '100%', 
-              height: '100%', 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              color: 'white' 
-            }}>
-              No video available
-            </div>
-          )}
+          <div style={{
+            width: '100%',
+            aspectRatio: '16/9',
+            backgroundColor: '#000',
+            borderRadius: '8px',
+            overflow: 'hidden',
+            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+          }}>
+            {discussion.crash?.videoUrl ? (
+              discussion.crash.videoUrl.includes('youtube.com') || discussion.crash.videoUrl.includes('youtu.be') ? (
+                <iframe
+                  title="crash-video"
+                  src={`https://www.youtube.com/embed/${getYouTubeVideoId(discussion.crash.videoUrl)}`}
+                  style={{ width: '100%', height: '100%', border: 'none' }}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen={true}
+                />
+              ) : (
+                <video
+                  controls
+                  style={{ width: '100%', height: '100%' }}
+                  onError={(e) => {
+                    console.error('Video loading error:', e);
+                    e.target.parentElement.innerHTML = 'Error loading video';
+                  }}
+                >
+                  <source src={discussion.crash.videoUrl} type="video/mp4" />
+                  <source src={discussion.crash.videoUrl} type="video/webm" />
+                  <source src={discussion.crash.videoUrl} type="video/ogg" />
+                  Your browser does not support the video tag.
+                </video>
+              )
+            ) : (
+              <div style={{ 
+                width: '100%', 
+                height: '100%', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                color: 'white',
+                padding: '20px',
+                textAlign: 'center'
+              }}>
+                No video available for this crash
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Incident Description */}
-        <p style={{ fontSize: '1.1rem', lineHeight: '1.6', marginBottom: '30px' }}>
-          {discussion.crash?.description || 'No description available'}
-        </p>
+        <div style={{ 
+          maxWidth: '760px', 
+          margin: '0 auto',
+          marginBottom: '30px',
+          backgroundColor: '#f8f8f8',
+          padding: '20px',
+          borderRadius: '8px'
+        }}>
+          <p style={{ 
+            fontSize: '1.1rem', 
+            lineHeight: '1.6',
+            margin: 0,
+            color: '#333'
+          }}>
+            {discussion.crash?.description || 'No description available for this crash'}
+          </p>
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '40px' }}>

@@ -22,6 +22,7 @@ public class DiscussionsController : ControllerBase
             .Include(d => d.Comments)
             .Include(d => d.Poll)
                 .ThenInclude(p => p.Votes)
+            .Include(d => d.Crash)
             .ToListAsync();
     }
 
@@ -33,6 +34,7 @@ public class DiscussionsController : ControllerBase
             .Include(d => d.Comments)
             .Include(d => d.Poll)
                 .ThenInclude(p => p.Votes)
+            .Include(d => d.Crash)
             .FirstOrDefaultAsync(d => d.Id == id);
 
         if (discussion == null)
@@ -100,12 +102,34 @@ public class DiscussionsController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteDiscussion(int id)
     {
-        var discussion = await _context.Discussions.FindAsync(id);
+        var discussion = await _context.Discussions
+            .Include(d => d.Comments)
+            .Include(d => d.Poll)
+                .ThenInclude(p => p.Votes)
+            .FirstOrDefaultAsync(d => d.Id == id);
+
         if (discussion == null)
         {
             return NotFound();
         }
 
+        // Remove all comments
+        if (discussion.Comments != null)
+        {
+            _context.Comments.RemoveRange(discussion.Comments);
+        }
+
+        // Remove poll votes and poll
+        if (discussion.Poll != null)
+        {
+            if (discussion.Poll.Votes != null)
+            {
+                _context.PollVotes.RemoveRange(discussion.Poll.Votes);
+            }
+            _context.Polls.Remove(discussion.Poll);
+        }
+
+        // Finally remove the discussion
         _context.Discussions.Remove(discussion);
         await _context.SaveChangesAsync();
 

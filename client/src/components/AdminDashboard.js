@@ -15,6 +15,9 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [comments, setComments] = useState([]);
+  const [discussions, setDiscussions] = useState([]);
+  const [editingDiscussionId, setEditingDiscussionId] = useState(null);
+  const [editFormData, setEditFormData] = useState(null);
 
   const styles = {
     container: {
@@ -120,6 +123,8 @@ const AdminDashboard = () => {
       fetchStats();
     } else if (activeTab === 'manage-comments') {
       fetchComments();
+    } else if (activeTab === 'manage-discussions') {
+      fetchDiscussions();
     }
   }, [activeTab]);
 
@@ -198,6 +203,26 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchDiscussions = async () => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        setError('No authentication token found. Please log in again.');
+        navigate('/admin/login');
+        return;
+      }
+
+      const response = await axios.get('https://localhost:7237/api/Discussions');
+      const discussionsData = response.data.$values || response.data;
+      setDiscussions(Array.isArray(discussionsData) ? discussionsData : []);
+      setLoading(false);
+    } catch (err) {
+      console.error('Error fetching discussions:', err);
+      setError('Failed to fetch discussions');
+      setLoading(false);
+    }
+  };
+
   const handleDeleteComment = async (commentId) => {
     try {
       const token = localStorage.getItem('adminToken');
@@ -215,6 +240,85 @@ const AdminDashboard = () => {
       console.error('Error deleting comment:', err);
       alert('Failed to delete comment. Please try again.');
     }
+  };
+
+  const handleDeleteDiscussion = async (discussionId) => {
+    if (!window.confirm('Are you sure you want to delete this discussion?')) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('adminToken');
+      const config = {
+        headers: {
+          'Authorization': token
+        }
+      };
+
+      await axios.delete(`https://localhost:7237/api/Discussions/${discussionId}`, config);
+      setDiscussions(prevDiscussions => prevDiscussions.filter(d => d.id !== discussionId));
+    } catch (err) {
+      console.error('Error deleting discussion:', err);
+      alert('Failed to delete discussion. Please try again.');
+    }
+  };
+
+  const handleEditClick = (discussion) => {
+    setEditingDiscussionId(discussion.id);
+    setEditFormData({
+      title: discussion.title,
+      description: discussion.crash?.description || '',
+      videoUrl: discussion.crash?.videoUrl || '',
+      crashId: discussion.crash?.id
+    });
+  };
+
+  const handleEditSave = async (discussion) => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      const config = {
+        headers: {
+          'Authorization': token
+        }
+      };
+
+      // If we have a crashId in editFormData, update the crash first
+      if (editFormData.crashId) {
+        // Get the current crash data
+        const crashResponse = await axios.get(`https://localhost:7237/api/Crashes/${editFormData.crashId}`, config);
+        const currentCrash = crashResponse.data;
+
+        // Update crash details
+        const crashData = {
+          ...currentCrash,
+          description: editFormData.description,
+          videoUrl: editFormData.videoUrl
+        };
+
+        // Update crash first
+        await axios.put(`https://localhost:7237/api/Crashes/${editFormData.crashId}`, crashData, config);
+      }
+
+      // Then update discussion title
+      const discussionData = {
+        ...discussion,
+        title: editFormData.title
+      };
+
+      await axios.put(`https://localhost:7237/api/Discussions/${discussion.id}`, discussionData, config);
+
+      setEditingDiscussionId(null);
+      setEditFormData(null);
+      fetchDiscussions();
+    } catch (err) {
+      console.error('Error updating:', err);
+      alert('Failed to update. Please try again.');
+    }
+  };
+
+  const handleEditCancel = () => {
+    setEditingDiscussionId(null);
+    setEditFormData(null);
   };
 
   const handleLogout = () => {
@@ -300,6 +404,170 @@ const AdminDashboard = () => {
             )}
           </div>
         );
+      case 'manage-discussions':
+        return (
+          <div>
+            <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Manage Discussions</h2>
+            {loading ? (
+              <div>Loading discussions...</div>
+            ) : discussions.length === 0 ? (
+              <div>No discussions found.</div>
+            ) : (
+              <div style={{ display: 'grid', gap: '1rem' }}>
+                {discussions.map(discussion => (
+                  <div
+                    key={discussion.id}
+                    style={{
+                      backgroundColor: 'white',
+                      padding: '1.5rem',
+                      borderRadius: '0.5rem',
+                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                      <div style={{ flex: 1 }}>
+                        {editingDiscussionId === discussion.id ? (
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div>
+                              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Title:</label>
+                              <input
+                                type="text"
+                                value={editFormData.title}
+                                onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+                                style={{
+                                  width: '100%',
+                                  padding: '0.5rem',
+                                  border: '1px solid #ddd',
+                                  borderRadius: '0.375rem',
+                                }}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Description:</label>
+                              <textarea
+                                value={editFormData.description}
+                                onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                                style={{
+                                  width: '100%',
+                                  padding: '0.5rem',
+                                  border: '1px solid #ddd',
+                                  borderRadius: '0.375rem',
+                                  minHeight: '100px',
+                                  resize: 'vertical',
+                                }}
+                              />
+                            </div>
+                            <div>
+                              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Video URL:</label>
+                              <input
+                                type="url"
+                                value={editFormData.videoUrl}
+                                onChange={(e) => setEditFormData({ ...editFormData, videoUrl: e.target.value })}
+                                style={{
+                                  width: '100%',
+                                  padding: '0.5rem',
+                                  border: '1px solid #ddd',
+                                  borderRadius: '0.375rem',
+                                }}
+                              />
+                            </div>
+                            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+                              <button
+                                onClick={() => handleEditSave(discussion)}
+                                style={{
+                                  padding: '0.5rem 1rem',
+                                  backgroundColor: '#10B981',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '0.375rem',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                Save
+                              </button>
+                              <button
+                                onClick={handleEditCancel}
+                                style={{
+                                  padding: '0.5rem 1rem',
+                                  backgroundColor: '#6B7280',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '0.375rem',
+                                  cursor: 'pointer',
+                                }}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem' }}>{discussion.title}</h3>
+                            <div style={{ fontSize: '0.875rem', color: '#666' }}>
+                              Created: {new Date(discussion.createdAt).toLocaleString()}
+                            </div>
+                            {discussion.crash && (
+                              <div style={{ marginTop: '1rem' }}>
+                                <div style={{ marginBottom: '0.5rem' }}>
+                                  <strong>Description:</strong>
+                                  <p style={{ marginTop: '0.25rem', color: '#666' }}>{discussion.crash.description}</p>
+                                </div>
+                                <div style={{ marginBottom: '0.5rem' }}>
+                                  <strong>Video URL:</strong>
+                                  <p style={{ marginTop: '0.25rem', color: '#666' }}>{discussion.crash.videoUrl}</p>
+                                </div>
+                              </div>
+                            )}
+                            {discussion.poll && (
+                              <div style={{ marginTop: '0.5rem' }}>
+                                <strong>Poll Question:</strong> {discussion.poll.question}
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        {editingDiscussionId !== discussion.id && (
+                          <>
+                            <button
+                              onClick={() => handleEditClick(discussion)}
+                              style={{
+                                padding: '0.5rem 1rem',
+                                backgroundColor: '#2563eb',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '0.375rem',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteDiscussion(discussion.id)}
+                              style={{
+                                padding: '0.5rem 1rem',
+                                backgroundColor: '#dc2626',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '0.375rem',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              Delete
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <div style={{ fontSize: '0.875rem', color: '#666' }}>
+                      Comments: {discussion.comments?.length || 0}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
       case 'manage-users':
         return <div>Manage Users Content</div>;
       case 'reports':
@@ -353,6 +621,15 @@ const AdminDashboard = () => {
             onClick={() => handleTabClick('manage-comments')}
           >
             <span>💬</span> Manage Comments
+          </button>
+          <button
+            style={{
+              ...styles.tab,
+              ...(activeTab === 'manage-discussions' ? styles.activeTab : {})
+            }}
+            onClick={() => handleTabClick('manage-discussions')}
+          >
+            <span>📝</span> Manage Discussions
           </button>
           <button
             style={{

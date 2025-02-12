@@ -16,6 +16,6 @@ public partial class CrashDriver
 
     public string? RoleInCrash { get; set; }
 
-    public virtual Driver Driver { get; set; }
+    public virtual Driver Driver { get; set; } = null!;
     public virtual Crash Crash { get; set; } = null!;
 }

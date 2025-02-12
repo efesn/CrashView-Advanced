@@ -2,8 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-function CrashPost({ id, title, description, imageUrl }) {
+function getYouTubeVideoId(url) {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+}
+
+function getYouTubeThumbnail(videoUrl) {
+  const videoId = getYouTubeVideoId(videoUrl);
+  if (videoId) {
+    // Using the high quality thumbnail (hqdefault)
+    return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+  }
+  return null;
+}
+
+function CrashPost({ id, title, description, imageUrl, videoUrl }) {
   const navigate = useNavigate();
+  const thumbnailUrl = videoUrl ? getYouTubeThumbnail(videoUrl) : imageUrl;
 
   const handleDiscussClick = () => {
     navigate(`/discuss/${id}`);
@@ -27,14 +44,21 @@ function CrashPost({ id, title, description, imageUrl }) {
         overflow: 'hidden',
         position: 'relative'
       }}>
-        {imageUrl ? (
+        {thumbnailUrl ? (
           <img 
-            src={imageUrl} 
+            src={thumbnailUrl} 
             alt={title}
             style={{ 
               width: '100%', 
               height: '100%', 
               objectFit: 'cover'
+            }}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = imageUrl || '';
+              if (!imageUrl) {
+                e.target.parentElement.innerHTML = '<div style="width: 100%; height: 100%; background-color: #f0f0f0; display: flex; align-items: center; justify-content: center; color: #666;">No image available</div>';
+              }
             }}
           />
         ) : (
@@ -166,6 +190,7 @@ function CrashesPage() {
             title={discussion.title}
             description={discussion.crash?.description || discussion.title}
             imageUrl={discussion.crash?.thumbnailUrl || discussion.crash?.imageUrl}
+            videoUrl={discussion.crash?.videoUrl}
           />
         ))}
       </div>
