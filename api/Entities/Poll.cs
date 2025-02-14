@@ -1,4 +1,4 @@
-﻿public class Poll
+public class Poll
 {
     public int Id { get; set; }
     public int? DiscussionId { get; set; }
@@ -7,4 +7,5 @@
 
     public Discussion? Discussion { get; set; }  
     public ICollection<PollVote>? Votes { get; set; } = new List<PollVote>();
+    
 }

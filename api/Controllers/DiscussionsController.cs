@@ -1,4 +1,4 @@
-﻿using CrashViewAdvanced.Entities;
+using CrashViewAdvanced.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Xml.Serialization;

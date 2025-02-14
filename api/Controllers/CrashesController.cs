@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using CrashViewAdvanced.Entities;
 using CrashViewAdvanced.DTOs;
 using System.Linq;
@@ -36,9 +36,9 @@ namespace CrashViewAdvanced.Controllers
                 CrashDrivers = crashDto.DriversInCrash.Select(d => new CrashDriver
                 {
                     DriverId = d.DriverId,
-                    Injured = d.InjuryStatus,
-                    DamageLevel = d.DamageLevel,
-                    RoleInCrash = d.IsResponsible ? "Responsible" : "Not Responsible"
+                   // Injured = d.InjuryStatus,
+                   // DamageLevel = d.DamageLevel,
+                   // RoleInCrash = d.IsResponsible ? "Responsible" : "Not Responsible"
                 }).ToList()
             };
 

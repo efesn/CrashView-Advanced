@@ -19,9 +19,13 @@ function CreateCrashPage() {
   const [discussionFormData, setDiscussionFormData] = useState({
     title: '',
     pollQuestion: '',
-    pollOptions: ['Responsible', 'Not Responsible', 'Racing Incident']
+    pollOptions: [
+      { text: 'Responsible', drivers: [] },
+      { text: 'Not Responsible', drivers: [] },
+      { text: 'Racing Incident', drivers: [] }
+    ]
   });
-
+    
   useEffect(() => {
     const fetchDrivers = async () => {
       try {
@@ -73,7 +77,9 @@ function CreateCrashPage() {
         date: new Date(crashFormData.date).toISOString(),
         description: crashFormData.description,
         videoUrl: crashFormData.videoUrl,
-        driversInCrash: selectedDrivers
+        driversInCrash: selectedDrivers.map(driver => ({
+          driverId: driver.driverId,
+        }))
       };
 
       const response = await axios.post('https://localhost:7237/api/Crashes', crashData);
@@ -83,6 +89,27 @@ function CreateCrashPage() {
       console.error('Error creating crash:', err);
       setError('Failed to create crash');
     }
+  };
+
+  const handleDriverPollSelect = (optionIndex, driverId) => {
+    setDiscussionFormData(prev => {
+      const newPollOptions = [...prev.pollOptions];
+      const drivers = newPollOptions[optionIndex].drivers;
+      
+      if (drivers.includes(driverId)) {
+        newPollOptions[optionIndex].drivers = drivers.filter(id => id !== driverId);
+      } else {
+        // Remove driver from other options first
+        newPollOptions.forEach((option, idx) => {
+          if (idx !== optionIndex) {
+            option.drivers = option.drivers.filter(id => id !== driverId);
+          }
+        });
+        newPollOptions[optionIndex].drivers.push(driverId);
+      }
+      
+      return { ...prev, pollOptions: newPollOptions };
+    });
   };
 
   const handleDiscussionSubmit = async (e) => {
@@ -103,10 +130,17 @@ function CreateCrashPage() {
         poll: {
           question: discussionFormData.pollQuestion,
           createdAt: new Date().toISOString(),
+          options: discussionFormData.pollOptions.map(option => ({
+            text: option.text,
+            pollOptionDrivers: option.drivers.map(driverId => ({
+              driverId: driverId
+            }))
+          })),
           votes: []
         }
       };
 
+      console.log('Submitting discussion data:', discussionData); // For debugging
       await axios.post('https://localhost:7237/api/Discussions', discussionData);
       navigate('/crashes');
     } catch (err) {
@@ -207,7 +241,9 @@ function CreateCrashPage() {
                 borderRadius: '8px',
                 backgroundColor: 'white'
               }}>
-                <h3 style={{ 
+               {/* 
+               
+               */} <h3 style={{ 
                   marginBottom: '15px',
                   color: '#333',
                   borderBottom: '2px solid #C40500',
@@ -220,27 +256,7 @@ function CreateCrashPage() {
                   display: 'grid',
                   gap: '15px'
                 }}>
-                  <div style={{ 
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px'
-                  }}>
-                    <label>Damage Level (1-5):</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="5"
-                      value={driver.damageLevel}
-                      onChange={(e) => updateDriverInfo(driver.driverId, 'damageLevel', parseInt(e.target.value))}
-                      disabled={createdCrash}
-                      style={{ 
-                        width: '60px',
-                        padding: '5px',
-                        border: '1px solid #ddd',
-                        borderRadius: '4px'
-                      }}
-                    />
-                  </div>
+                  
 
                   <div style={{ 
                     display: 'flex',
@@ -253,18 +269,6 @@ function CreateCrashPage() {
                       gap: '8px',
                       cursor: createdCrash ? 'not-allowed' : 'pointer'
                     }}>
-                      <input
-                        type="checkbox"
-                        checked={driver.injuryStatus}
-                        onChange={(e) => updateDriverInfo(driver.driverId, 'injuryStatus', e.target.checked)}
-                        disabled={createdCrash}
-                        style={{
-                          width: '18px',
-                          height: '18px',
-                          cursor: createdCrash ? 'not-allowed' : 'pointer'
-                        }}
-                      />
-                      <span>Injured</span>
                     </label>
                   </div>
                 </div>
@@ -322,6 +326,48 @@ function CreateCrashPage() {
               placeholder="e.g., Who was responsible for the crash?"
             />
           </div>
+
+          <div style={{ marginTop: '20px' }}>
+            <h3>Poll Options</h3>
+            {discussionFormData.pollOptions.map((option, optionIndex) => (
+              <div key={optionIndex} style={{ 
+                marginBottom: '20px',
+                padding: '15px',
+                border: '1px solid #ddd',
+                borderRadius: '4px'
+              }}>
+                <h4>{option.text}</h4>
+                <div style={{ 
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+                  gap: '10px',
+                  marginTop: '10px'
+                }}>
+                  {selectedDrivers.map(driver => {
+                    const driverInfo = drivers.find(d => d.id === driver.driverId);
+                    const isSelected = option.drivers.includes(driver.driverId);
+                    
+                    return (
+                      <div
+                        key={driver.driverId}
+                        onClick={() => handleDriverPollSelect(optionIndex, driver.driverId)}
+                        style={{
+                          padding: '8px',
+                          border: isSelected ? '2px solid #C40500' : '1px solid #ddd',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          backgroundColor: isSelected ? '#fff0f0' : 'white',
+                          textAlign: 'center'
+                        }}
+                      >
+                        {driverInfo?.firstName} {driverInfo?.lastName}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         <button
@@ -343,4 +389,4 @@ function CreateCrashPage() {
   );
 }
 
-export default CreateCrashPage; 
+export default CreateCrashPage;

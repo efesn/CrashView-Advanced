@@ -45,7 +45,7 @@ function NewDiscussionPage() {
       });
 
       // Redirect to the newly created discussion
-      navigate(`/discussions/${response.data.id}`);
+      // navigate(`/discussions/${response.data.id}`);
     } catch (error) {
       setError('Failed to create discussion');
       console.error('Error creating discussion:', error);

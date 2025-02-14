@@ -278,41 +278,80 @@ const AdminDashboard = () => {
       const token = localStorage.getItem('adminToken');
       const config = {
         headers: {
-          'Authorization': token
+          'Authorization': token,
+          'Content-Type': 'application/json'
         }
       };
 
-      // If we have a crashId in editFormData, update the crash first
-      if (editFormData.crashId) {
-        // Get the current crash data
-        const crashResponse = await axios.get(`https://localhost:7237/api/Crashes/${editFormData.crashId}`, config);
-        const currentCrash = crashResponse.data;
+      console.log('Original Discussion:', discussion);
+      console.log('Edit Form Data:', editFormData);
 
-        // Update crash details
-        const crashData = {
-          ...currentCrash,
+      // Prepare the updated discussion object with nested crash
+      const updatedDiscussion = {
+        id: discussion.id,
+        title: editFormData.title,
+        createdAt: discussion.createdAt,
+        updatedAt: new Date().toISOString(),
+        crash: {
+          id: discussion.crash.id,
           description: editFormData.description,
-          videoUrl: editFormData.videoUrl
-        };
-
-        // Update crash first
-        await axios.put(`https://localhost:7237/api/Crashes/${editFormData.crashId}`, crashData, config);
-      }
-
-      // Then update discussion title
-      const discussionData = {
-        ...discussion,
-        title: editFormData.title
+          videoUrl: editFormData.videoUrl,
+          date: discussion.crash.date
+        }
       };
 
-      await axios.put(`https://localhost:7237/api/Discussions/${discussion.id}`, discussionData, config);
+      // Only include optional properties if they exist
+      if (discussion.crashId) {
+        updatedDiscussion.crashId = discussion.crashId;
+      }
+
+      if (discussion.comments && discussion.comments.$values) {
+        updatedDiscussion.comments = discussion.comments.$values;
+      } else if (Array.isArray(discussion.comments)) {
+        updatedDiscussion.comments = discussion.comments;
+      }
+
+      if (discussion.poll) {
+        updatedDiscussion.poll = discussion.poll;
+      }
+
+      if (discussion.crash.crashDrivers && discussion.crash.crashDrivers.$values) {
+        updatedDiscussion.crash.crashDrivers = discussion.crash.crashDrivers.$values;
+      } else if (Array.isArray(discussion.crash.crashDrivers)) {
+        updatedDiscussion.crash.crashDrivers = discussion.crash.crashDrivers;
+      }
+
+      console.log('Prepared Update Data:', JSON.stringify(updatedDiscussion, null, 2));
+      console.log('Request URL:', `https://localhost:7237/api/Discussions/${discussion.id}`);
+      console.log('Request Config:', config);
+
+      // Update discussion with nested crash data
+      const response = await axios.put(
+        `https://localhost:7237/api/Discussions/${discussion.id}`, 
+        updatedDiscussion,
+        config
+      );
+
+      console.log('Update Response:', response);
 
       setEditingDiscussionId(null);
       setEditFormData(null);
-      fetchDiscussions();
+      fetchDiscussions(); // Refresh the discussions list
     } catch (err) {
-      console.error('Error updating:', err);
-      alert('Failed to update. Please try again.');
+      console.error('Error updating discussion:', {
+        error: err,
+        errorMessage: err.message,
+        errorResponse: err.response?.data,
+        errorStatus: err.response?.status,
+        errorStatusText: err.response?.statusText,
+        requestData: JSON.parse(err.config?.data || '{}'),
+        requestHeaders: err.config?.headers,
+        requestUrl: err.config?.url
+      });
+
+      // More specific error message
+      const errorDetail = err.response?.data?.detail || err.response?.data || err.message;
+      alert(`Failed to update: ${errorDetail}`);
     }
   };
 
