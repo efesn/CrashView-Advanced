@@ -1,4 +1,5 @@
-﻿# 🏎️CrashView
+<!-- aHR0cHM6Ly93d3cueW91dHViZS5jb20vd2F0Y2g/dj14dkZaam81UGdHMA== -->
+ # 🏎️CrashView
 
 __CrashView aiming to provide comprehensive crash analysis for Formula 1 races, it provides statistical data about crash, drivers, teams etc. and serves as a forum for users to discuss these incidents.__
 
@@ -27,8 +28,9 @@ Before running the project, make sure you have the following installed:
   - If you don't have Node.js installed, you can download it from [here](https://nodejs.org/).
 
 ---
-
-## Usage
+## Docker Setup (Soon)
+*Working on it...*
+## Manual Setup
 To setup CrashView locally, follow these steps:
 
 1. Clone the CrashView repository to your local machine:
