@@ -1,4 +1,4 @@
-﻿﻿# 🏎️CrashView
+# 🏎️CrashView
 
 __CrashView aiming to provide comprehensive crash analysis for Formula 1 races, it provides statistical data about crash, drivers, teams etc. and serves as a forum for users to discuss these incidents.__
 
@@ -30,7 +30,7 @@ Before running the project, make sure you have the following installed:
 
 ## Usage
 ### Docker Setup
-**Working on it...*
+*Working on it...*
 ### Manual Setup
 To setup CrashView locally, follow these steps:
 
