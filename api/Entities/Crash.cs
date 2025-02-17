@@ -13,5 +13,5 @@ public partial class Crash
 
     public string? VideoUrl { get; set; }
 
-    public virtual ICollection<CrashDriver> CrashDrivers { get; set; } = new List<CrashDriver>();
+    public ICollection<CrashDriver> CrashDrivers { get; set; }
 }

@@ -22,6 +22,7 @@ namespace CrashViewAdvanced.Controllers
         public async Task<ActionResult> GetPolls()
         {
             var polls = await _context.Polls.Include(p => p.Votes).ToListAsync();
+            
             return Ok(polls);
         }
 

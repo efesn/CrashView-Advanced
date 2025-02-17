@@ -23,6 +23,7 @@ public class DiscussionsController : ControllerBase
             .Include(d => d.Poll)
                 .ThenInclude(p => p.Votes)
             .Include(d => d.Crash)
+                .ThenInclude(c => c.CrashDrivers)
             .ToListAsync();
     }
 

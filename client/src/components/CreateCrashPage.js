@@ -77,17 +77,19 @@ function CreateCrashPage() {
         date: new Date(crashFormData.date).toISOString(),
         description: crashFormData.description,
         videoUrl: crashFormData.videoUrl,
-        driversInCrash: selectedDrivers.map(driver => ({
-          driverId: driver.driverId,
+        crashDrivers: selectedDrivers.map(driver => ({
+          driverId: driver.driverId
         }))
       };
+
+      console.log('Submitting crash data:', crashData);
 
       const response = await axios.post('https://localhost:7237/api/Crashes', crashData);
       setCreatedCrash(response.data);
       setError(null);
     } catch (err) {
-      console.error('Error creating crash:', err);
-      setError('Failed to create crash');
+      console.error('Error creating crash:', err.response?.data || err.message);
+      setError(err.response?.data || 'Failed to create crash');
     }
   };
 

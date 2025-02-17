@@ -21,24 +21,32 @@ namespace CrashViewAdvanced.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllCrashes()
         {
-            var crashes = await _context.Crashes.ToListAsync();
+            var crashes = await _context.Crashes.Include(c => c.CrashDrivers).ToListAsync();
+            //var crashes = await _context.Crashes.Include(c => c.CrashDrivers).ThenInclude(cd => cd.Driver).ToListAsync();
             return Ok(crashes);
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateCrash([FromBody] CrashCreateDto crashDto)
+        public async Task<IActionResult> CreateCrash([FromBody] CrashCreateDto crashCreateDto)
         {
+            // Verify that all driver IDs exist before creating the crash
+            foreach (var driverDto in crashCreateDto.CrashDrivers)
+            {
+                var driverExists = await _context.Drivers.AnyAsync(d => d.Id == driverDto.DriverId);
+                if (!driverExists)
+                {
+                    return BadRequest($"Driver with ID {driverDto.DriverId} does not exist");
+                }
+            }
+
             var crash = new Crash
             {
-                Date = crashDto.Date,
-                Description = crashDto.Description,
-                VideoUrl = crashDto.VideoUrl,
-                CrashDrivers = crashDto.DriversInCrash.Select(d => new CrashDriver
+                Date = crashCreateDto.Date,
+                Description = crashCreateDto.Description,
+                VideoUrl = crashCreateDto.VideoUrl,
+                CrashDrivers = crashCreateDto.CrashDrivers.Select(cd => new CrashDriver
                 {
-                    DriverId = d.DriverId,
-                   // Injured = d.InjuryStatus,
-                   // DamageLevel = d.DamageLevel,
-                   // RoleInCrash = d.IsResponsible ? "Responsible" : "Not Responsible"
+                    DriverId = cd.DriverId
                 }).ToList()
             };
 
@@ -80,8 +88,7 @@ namespace CrashViewAdvanced.Controllers
             existingCrash.CrashDrivers = crash.CrashDrivers.Select(d => new CrashDriver
             {
                 DriverId = d.DriverId,
-                Injured = d.Injured,
-                DamageLevel = d.DamageLevel,
+
             }).ToList();
 
             await _context.SaveChangesAsync();
