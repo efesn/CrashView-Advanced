@@ -115,10 +115,57 @@ const AdminDashboard = () => {
       fontSize: '1.875rem',
       fontWeight: 'bold',
       color: '#1a1a1a',
-    }
+    },
+    editForm: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '1rem',
+    },
+    editInput: {
+      width: '100%',
+      padding: '0.5rem',
+      border: '1px solid #ddd',
+      borderRadius: '0.375rem',
+    },
+    editButtons: {
+      display: 'flex',
+      gap: '0.5rem',
+    },
+    saveButton: {
+      padding: '0.5rem 1rem',
+      backgroundColor: '#10B981',
+      color: 'white',
+      border: 'none',
+      borderRadius: '0.375rem',
+      cursor: 'pointer',
+    },
+    cancelButton: {
+      padding: '0.5rem 1rem',
+      backgroundColor: '#6B7280',
+      color: 'white',
+      border: 'none',
+      borderRadius: '0.375rem',
+      cursor: 'pointer',
+    },
   };
 
   useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await axios.get('https://localhost:7237/api/Crashes/stats');
+        setStats({
+          totalCrashes: response.data.totalCrashes,
+          totalUsers: response.data.totalUsers,
+          totalDiscussions: response.data.totalDiscussions
+        });
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching stats:', err);
+        setError('Failed to load dashboard statistics');
+        setLoading(false);
+      }
+    };
+
     if (activeTab === 'dashboard') {
       fetchStats();
     } else if (activeTab === 'manage-comments') {
@@ -127,54 +174,6 @@ const AdminDashboard = () => {
       fetchDiscussions();
     }
   }, [activeTab]);
-
-  const fetchStats = async () => {
-    try {
-      const token = localStorage.getItem('adminToken');
-      if (!token) {
-        setError('No authentication token found. Please log in again.');
-        navigate('/admin/login');
-        return;
-      }
-
-      const config = {
-        headers: {
-          'Authorization': token
-        }
-      };
-
-      console.log('Making API request for crashes...');
-
-      const crashesRes = await axios.get('https://localhost:7237/api/Crashes', config);
-      const discussionRes = await axios.get('https://localhost:7237/api/Discussions', config);
-
-      
-      // Handle both array and $values format
-      const crashesData = crashesRes.data.$values || crashesRes.data;
-      const discussionData = discussionRes.data.$values || discussionRes.data;
-      
-      console.log('Crashes data:', crashesData);
-      console.log('Discussion data:', discussionData);
-
-      setStats({
-        totalCrashes: Array.isArray(crashesData) ? crashesData.length : 0,
-        totalUsers: 0,
-        totalDiscussions: Array.isArray(discussionData) ? discussionData.length : 0
-      });
-      setLoading(false);
-    } catch (err) {
-      console.error('Dashboard error:', err.response || err);
-      if (err.response?.status === 401) {
-        setError('Authentication failed. Please log in again.');
-        localStorage.removeItem('adminToken');
-        localStorage.removeItem('isAdminLoggedIn');
-        navigate('/admin/login');
-      } else {
-        setError('Failed to fetch crashes data.');
-      }
-      setLoading(false);
-    }
-  };
 
   const fetchComments = async () => {
     try {
@@ -267,92 +266,56 @@ const AdminDashboard = () => {
     setEditingDiscussionId(discussion.id);
     setEditFormData({
       title: discussion.title,
-      description: discussion.crash?.description || '',
-      videoUrl: discussion.crash?.videoUrl || '',
-      crashId: discussion.crash?.id
+      crashId: discussion.crashId,
+      poll: discussion.poll ? {
+        id: discussion.poll.id,
+        question: discussion.poll.question
+      } : null
     });
   };
 
-  const handleEditSave = async (discussion) => {
+  const handleEditSave = async (discussionId) => {
     try {
-      const token = localStorage.getItem('adminToken');
-      const config = {
-        headers: {
-          'Authorization': token,
-          'Content-Type': 'application/json'
-        }
+      const editedDiscussion = editFormData;
+      
+      // Create a simplified update object
+      const updateData = {
+        id: discussionId,
+        title: editedDiscussion.title,
+        crashId: editedDiscussion.crashId,
+        poll: editedDiscussion.poll ? {
+          id: editedDiscussion.poll.id,
+          question: editedDiscussion.poll.question
+        } : null
       };
 
-      console.log('Original Discussion:', discussion);
-      console.log('Edit Form Data:', editFormData);
-
-      // Prepare the updated discussion object with nested crash
-      const updatedDiscussion = {
-        id: discussion.id,
-        title: editFormData.title,
-        createdAt: discussion.createdAt,
-        updatedAt: new Date().toISOString(),
-        crash: {
-          id: discussion.crash.id,
-          description: editFormData.description,
-          videoUrl: editFormData.videoUrl,
-          date: discussion.crash.date
-        }
-      };
-
-      // Only include optional properties if they exist
-      if (discussion.crashId) {
-        updatedDiscussion.crashId = discussion.crashId;
-      }
-
-      if (discussion.comments && discussion.comments.$values) {
-        updatedDiscussion.comments = discussion.comments.$values;
-      } else if (Array.isArray(discussion.comments)) {
-        updatedDiscussion.comments = discussion.comments;
-      }
-
-      if (discussion.poll) {
-        updatedDiscussion.poll = discussion.poll;
-      }
-
-      if (discussion.crash.crashDrivers && discussion.crash.crashDrivers.$values) {
-        updatedDiscussion.crash.crashDrivers = discussion.crash.crashDrivers.$values;
-      } else if (Array.isArray(discussion.crash.crashDrivers)) {
-        updatedDiscussion.crash.crashDrivers = discussion.crash.crashDrivers;
-      }
-
-      console.log('Prepared Update Data:', JSON.stringify(updatedDiscussion, null, 2));
-      console.log('Request URL:', `https://localhost:7237/api/Discussions/${discussion.id}`);
-      console.log('Request Config:', config);
-
-      // Update discussion with nested crash data
       const response = await axios.put(
-        `https://localhost:7237/api/Discussions/${discussion.id}`, 
-        updatedDiscussion,
-        config
+        `https://localhost:7237/api/Discussions/${discussionId}`,
+        updateData
       );
 
-      console.log('Update Response:', response);
-
-      setEditingDiscussionId(null);
-      setEditFormData(null);
-      fetchDiscussions(); // Refresh the discussions list
+      if (response.status === 204) {
+        // Update the discussions list
+        setDiscussions(prevDiscussions => 
+          prevDiscussions.map(d => 
+            d.id === discussionId ? { ...d, ...editedDiscussion } : d
+          )
+        );
+        setEditingDiscussionId(null);
+        setEditFormData(null);
+      }
     } catch (err) {
-      console.error('Error updating discussion:', {
-        error: err,
-        errorMessage: err.message,
-        errorResponse: err.response?.data,
-        errorStatus: err.response?.status,
-        errorStatusText: err.response?.statusText,
-        requestData: JSON.parse(err.config?.data || '{}'),
-        requestHeaders: err.config?.headers,
-        requestUrl: err.config?.url
-      });
-
-      // More specific error message
-      const errorDetail = err.response?.data?.detail || err.response?.data || err.message;
-      alert(`Failed to update: ${errorDetail}`);
+      console.error('Error updating discussion:', err);
+      setError('Failed to update discussion');
     }
+  };
+
+  const handleEditFormChange = (e) => {
+    const { name, value } = e.target;
+    setEditFormData(prev => ({
+        ...prev,
+        [name]: value
+    }));
   };
 
   const handleEditCancel = () => {
@@ -466,74 +429,39 @@ const AdminDashboard = () => {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                       <div style={{ flex: 1 }}>
                         {editingDiscussionId === discussion.id ? (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                            <div>
-                              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Title:</label>
+                          <div style={styles.editForm}>
+                            <input
+                              type="text"
+                              name="title"
+                              value={editFormData.title}
+                              onChange={handleEditFormChange}
+                              style={styles.editInput}
+                            />
+                            {editFormData.poll && (
                               <input
                                 type="text"
-                                value={editFormData.title}
-                                onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
-                                style={{
-                                  width: '100%',
-                                  padding: '0.5rem',
-                                  border: '1px solid #ddd',
-                                  borderRadius: '0.375rem',
-                                }}
+                                name="poll.question"
+                                value={editFormData.poll.question}
+                                onChange={(e) => setEditFormData(prev => ({
+                                  ...prev,
+                                  poll: { ...prev.poll, question: e.target.value }
+                                }))}
+                                style={styles.editInput}
                               />
-                            </div>
-                            <div>
-                              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Description:</label>
-                              <textarea
-                                value={editFormData.description}
-                                onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
-                                style={{
-                                  width: '100%',
-                                  padding: '0.5rem',
-                                  border: '1px solid #ddd',
-                                  borderRadius: '0.375rem',
-                                  minHeight: '100px',
-                                  resize: 'vertical',
-                                }}
-                              />
-                            </div>
-                            <div>
-                              <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>Video URL:</label>
-                              <input
-                                type="url"
-                                value={editFormData.videoUrl}
-                                onChange={(e) => setEditFormData({ ...editFormData, videoUrl: e.target.value })}
-                                style={{
-                                  width: '100%',
-                                  padding: '0.5rem',
-                                  border: '1px solid #ddd',
-                                  borderRadius: '0.375rem',
-                                }}
-                              />
-                            </div>
-                            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+                            )}
+                            <div style={styles.editButtons}>
                               <button
-                                onClick={() => handleEditSave(discussion)}
-                                style={{
-                                  padding: '0.5rem 1rem',
-                                  backgroundColor: '#10B981',
-                                  color: 'white',
-                                  border: 'none',
-                                  borderRadius: '0.375rem',
-                                  cursor: 'pointer',
-                                }}
+                                onClick={() => handleEditSave(discussion.id)}
+                                style={styles.saveButton}
                               >
                                 Save
                               </button>
                               <button
-                                onClick={handleEditCancel}
-                                style={{
-                                  padding: '0.5rem 1rem',
-                                  backgroundColor: '#6B7280',
-                                  color: 'white',
-                                  border: 'none',
-                                  borderRadius: '0.375rem',
-                                  cursor: 'pointer',
+                                onClick={() => {
+                                  setEditingDiscussionId(null);
+                                  setEditFormData(null);
                                 }}
+                                style={styles.cancelButton}
                               >
                                 Cancel
                               </button>

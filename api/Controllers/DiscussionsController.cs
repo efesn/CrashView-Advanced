@@ -36,6 +36,7 @@ public class DiscussionsController : ControllerBase
             .Include(d => d.Poll)
                 .ThenInclude(p => p.Votes)
             .Include(d => d.Crash)
+                .ThenInclude(c => c.CrashDrivers) // !!!
             .FirstOrDefaultAsync(d => d.Id == id);
 
         if (discussion == null)
@@ -71,18 +72,36 @@ public class DiscussionsController : ControllerBase
 
     // PUT
     [HttpPut("{id}")]
-    public async Task<IActionResult> PutDiscussion(int id, Discussion discussion)
+    public async Task<IActionResult> PutDiscussion(int id, DiscussionUpdateDto updateDto)
     {
-        if (id != discussion.Id)
+        if (id != updateDto.Id)
         {
             return BadRequest();
         }
 
-        _context.Entry(discussion).State = EntityState.Modified;
+        var existingDiscussion = await _context.Discussions
+            .Include(d => d.Poll)
+            .FirstOrDefaultAsync(d => d.Id == id);
+
+        if (existingDiscussion == null)
+        {
+            return NotFound();
+        }
+
+        // Update basic properties
+        existingDiscussion.Title = updateDto.Title;
+        existingDiscussion.CrashId = updateDto.CrashId;
+
+        // Update poll if it exists
+        if (updateDto.Poll != null && existingDiscussion.Poll != null)
+        {
+            existingDiscussion.Poll.Question = updateDto.Poll.Question;
+        }
 
         try
         {
             await _context.SaveChangesAsync();
+            return NoContent();
         }
         catch (DbUpdateConcurrencyException)
         {
@@ -90,13 +109,8 @@ public class DiscussionsController : ControllerBase
             {
                 return NotFound();
             }
-            else
-            {
-                throw;
-            }
+            throw;
         }
-
-        return NoContent();
     }
 
     // DELETE

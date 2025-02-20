@@ -30,45 +30,32 @@ const LoginPage = () => {
 
       console.log('Login Response:', response.data);
   
-      const token = response.data.token;
+      const { token, role } = response.data;
       
-      // Store user information
-      localStorage.setItem('username', formData.username);
-      localStorage.setItem('authToken', token);
-      localStorage.setItem('isLoggedIn', 'true');
-      
-      // Decode the JWT token to get user claims including role
-      try {
-        const decodedToken = jwtDecode(token);
-        console.log('Decoded Token:', decodedToken);
-        
-        // The role claim might be in different places depending on your JWT structure
-        const role = decodedToken.role || decodedToken.Role || decodedToken['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
-        console.log('User Role from Token:', role);
-        
-        if (role) {
-          localStorage.setItem('role', role);
-        }
-      } catch (tokenError) {
-        console.error('Error decoding token:', tokenError);
+      if (!token) {
+        throw new Error('No token received from server');
       }
 
-      // Dispatch a custom event to notify navbar of login
+      // Store user information
+      localStorage.setItem('username', formData.username);
+      localStorage.setItem('jwtToken', token);
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('role', role);
+
+      // Dispatch login event
       window.dispatchEvent(new Event('loginStateChange'));
   
       setNotification({ message: 'Login successful!', type: 'success' });
   
-      // Use navigate instead of window.location for smoother transition
       setTimeout(() => {
         navigate('/crashes');
       }, 1500);
     } catch (error) {
-      console.error('Login Error:', error.response?.data);
-      if (error.response && error.response.data) {
-        setNotification({ message: error.response.data.message || 'Login failed.', type: 'error' });
-      } else {
-        setNotification({ message: 'An error occurred. Please try again.', type: 'error' });
-      }
+      console.error('Login Error:', error);
+      setNotification({ 
+        message: error.response?.data?.message || 'Login failed.', 
+        type: 'error' 
+      });
     }
   };
 
@@ -192,6 +179,7 @@ const LoginPage = () => {
                 style={styles.input}
                 value={formData.username}
                 onChange={handleChange}
+                autoComplete="username"
               />
             </div>
             <div style={styles.inputGroup}>
@@ -205,6 +193,7 @@ const LoginPage = () => {
                 style={styles.input}
                 value={formData.password}
                 onChange={handleChange}
+                autoComplete="current-password"
               />
             </div>
             <button type="submit" style={styles.button}>

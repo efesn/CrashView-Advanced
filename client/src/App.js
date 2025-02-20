@@ -12,6 +12,7 @@ import DriversPage from './components/DriversPage.js';
 import TeamsPage from './components/TeamsPage.js';
 import AboutPage from './components/AboutPage.js';
 import CreateCrashPage from './components/CreateCrashPage.js';
+import ProfilePage from './components/ProfilePage';
 
 // Admin route protection
 const AdminRoute = ({ children }) => {
@@ -98,6 +99,14 @@ function App() {
               <Navbar />
               <main style={{ padding: '2rem' }}>
                 <DiscussPage />
+              </main>
+            </>
+          } />
+          <Route path="/profile" element={
+            <>
+              <Navbar />
+              <main style={{ padding: '2rem' }}>
+                <ProfilePage />
               </main>
             </>
           } />

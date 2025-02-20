@@ -54,27 +54,19 @@ namespace CrashViewAdvanced.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login(LoginDTO loginDto)
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == loginDto.UserName);
-
-            if (user == null || !VerifyPassword(loginDto.Password, user.PasswordHash)) 
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == request.Username);
+            
+            if (user == null || !VerifyPassword(request.Password, user.PasswordHash))
             {
-                return Unauthorized(); 
+                return BadRequest(new { message = "Invalid username or password" });
             }
 
             var token = GenerateJwtToken(user);
 
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Strict,
-                Expires = DateTime.Now.AddDays(7)
-            };
-            Response.Cookies.Append("jwt", token, cookieOptions);
-
             return Ok(new { 
+                token = token,
                 message = "Login successful",
                 role = user.Role
             });
@@ -161,9 +153,9 @@ namespace CrashViewAdvanced.Controllers
         {
             var claims = new[]
             {
-                new Claim(ClaimTypes.NameIdentifier, user.UserName),
-                new Claim(ClaimTypes.Role, user.Role),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Role, user.Role ?? "User")
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:SecretKey"]));
@@ -173,8 +165,9 @@ namespace CrashViewAdvanced.Controllers
                 issuer: _configuration["JwtSettings:Issuer"],
                 audience: _configuration["JwtSettings:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddDays(7),
-                signingCredentials: creds);
+                expires: DateTime.Now.AddDays(1),
+                signingCredentials: creds
+            );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
@@ -192,38 +185,38 @@ namespace CrashViewAdvanced.Controllers
         }
 
         [HttpPost("admin-login")]
-        public async Task<IActionResult> AdminLogin([FromBody] LoginDTO loginDto)
+        public async Task<IActionResult> AdminLogin([FromBody] LoginRequest request)
         {
-            Console.WriteLine($"Received admin login request for user: {loginDto.UserName}"); // Debug log
+            Console.WriteLine($"Received admin login request for user: {request.Username}");
 
             try 
             {
-                var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == loginDto.UserName);
+                var user = await _context.Users.FirstOrDefaultAsync(u => u.UserName == request.Username);
 
                 if (user == null)
                 {
-                    Console.WriteLine("User not found in database"); // Debug log
+                    Console.WriteLine("User not found in database");
                     return Unauthorized(new { message = "Invalid admin credentials" });
                 }
 
-                Console.WriteLine($"Found user with role: {user.Role}"); // Debug log
+                Console.WriteLine($"Found user with role: {user.Role}");
 
-                if (!VerifyPassword(loginDto.Password, user.PasswordHash))
+                if (!VerifyPassword(request.Password, user.PasswordHash))
                 {
-                    Console.WriteLine("Password verification failed"); // Debug log
+                    Console.WriteLine("Password verification failed");
                     return Unauthorized(new { message = "Invalid admin credentials" });
                 }
 
-                Console.WriteLine("Password verified successfully"); // Debug log
+                Console.WriteLine("Password verified successfully");
 
                 if (user.Role != "Admin")
                 {
-                    Console.WriteLine($"User is not admin. Role: {user.Role}"); // Debug log
+                    Console.WriteLine($"User is not admin. Role: {user.Role}");
                     return Unauthorized(new { message = "Access denied. Only administrators can access this area." });
                 }
 
                 var token = GenerateJwtToken(user);
-                Console.WriteLine("JWT token generated"); // Debug log
+                Console.WriteLine("JWT token generated");
 
                 return Ok(new { 
                     message = "Admin login successful",
@@ -233,7 +226,7 @@ namespace CrashViewAdvanced.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error during admin login: {ex.Message}"); // Debug log
+                Console.WriteLine($"Error during admin login: {ex.Message}");
                 return StatusCode(500, new { message = "An error occurred during login" });
             }
         }

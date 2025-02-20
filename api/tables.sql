@@ -25,9 +25,6 @@ CREATE TABLE CrashDriver (
     Id INT PRIMARY KEY IDENTITY(1,1),
     CrashId INT NOT NULL,
     DriverId INT NOT NULL,
-    Injured BIT NOT NULL,
-    DamageLevel NVARCHAR(20),
-    RoleInCrash NVARCHAR(20),
     CONSTRAINT FK_CrashDriver_Crash FOREIGN KEY (CrashId) REFERENCES Crashes(Id) ON DELETE CASCADE,
     CONSTRAINT FK_CrashDriver_Driver FOREIGN KEY (DriverId) REFERENCES Drivers(Id) ON DELETE CASCADE
 );
@@ -37,14 +34,6 @@ CREATE TABLE Users (
     UserName NVARCHAR(50) NOT NULL,
     PasswordHash NVARCHAR(255) NOT NULL,
     Role NVARCHAR(20) NOT NULL
-);
-
-CREATE TABLE CrashDriver (
-    Id INT PRIMARY KEY IDENTITY(1,1),
-    CrashId INT NOT NULL,
-    DriverId INT NOT NULL,
-    FOREIGN KEY (CrashId) REFERENCES Crashes(Id) ON DELETE CASCADE,
-    FOREIGN KEY (DriverId) REFERENCES Drivers(Id) ON DELETE CASCADE
 );
 
 CREATE TABLE CrashTeam (

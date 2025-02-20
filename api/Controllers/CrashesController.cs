@@ -107,5 +107,18 @@ namespace CrashViewAdvanced.Controllers
 
             return NoContent(); 
         }
+
+        [HttpGet("stats")]
+        public async Task<IActionResult> GetStats()
+        {
+            var stats = new
+            {
+                totalCrashes = await _context.Crashes.CountAsync(),
+                totalUsers = await _context.Users.CountAsync(),
+                totalDiscussions = await _context.Discussions.CountAsync()
+            };
+
+            return Ok(stats);
+        }
     }
 }

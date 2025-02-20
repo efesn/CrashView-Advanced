@@ -21,9 +21,35 @@ namespace CrashViewAdvanced.Controllers
         [HttpGet]
         public async Task<ActionResult> GetPolls()
         {
-            var polls = await _context.Polls.Include(p => p.Votes).ToListAsync();
+            var polls = await _context.Polls
+                .Include(p => p.Votes)
+                .Include(p => p.Discussion)
+//                    .ThenInclude(d => d.Crash) 
+  //                      .ThenInclude(c => c.CrashDrivers)
+    //                        .ThenInclude(cd => cd.Driver)
+                .ToListAsync();
             
             return Ok(polls);
+        }
+
+        // GET: api/poll/{id}
+        [HttpGet("{id}")]
+        public async Task<ActionResult> GetPoll(int id)
+        {
+            var poll = await _context.Polls
+                .Include(p => p.Votes)
+                .Include(p => p.Discussion)
+                    .ThenInclude(d => d.Crash)
+                        .ThenInclude(c => c.CrashDrivers)
+                            .ThenInclude(cd => cd.Driver)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (poll == null)
+            {
+                return NotFound(new { message = "Poll not found!" });
+            }
+
+            return Ok(poll);
         }
 
         // POST: api/poll
