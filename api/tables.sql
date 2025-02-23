@@ -90,7 +90,9 @@ VALUES ('john', 'john@john.com', '$2a$10$1nTna887HGBOeeQYzmbSvO1xQFe/gbd6coprRti
 
 ---F1 Related Data---
 INSERT INTO Teams (Name) VALUES 
+('Scuderia Ferrari'),
 ('Red Bull Racing'),
+('Aston Martin'),
 ('Mercedes'),
 ('McLaren'),
 ('Alpine'),
@@ -100,8 +102,12 @@ INSERT INTO Teams (Name) VALUES
 ('Kick Sauber');
 
 INSERT INTO Drivers (FirstName, LastName, TeamId) VALUES
+('Charles', 'Leclerc', (SELECT Id FROM Teams WHERE Name = 'Scuderia Ferrari')),
+('Lewis', 'Hamilton', (SELECT Id FROM Teams WHERE Name = 'Scuderia Ferrari')),
 ('Max', 'Verstappen', (SELECT Id FROM Teams WHERE Name = 'Red Bull Racing')),
 ('Liam', 'Lawson', (SELECT Id FROM Teams WHERE Name = 'Red Bull Racing')),
+('Fernando', 'Alonso', (SELECT Id FROM Teams WHERE Name = 'Aston Martin')),
+('Lance', 'Stroll', (SELECT Id FROM Teams WHERE Name = 'Aston Martin')),
 ('Kimi', 'Antonelli', (SELECT Id FROM Teams WHERE Name = 'Mercedes')),
 ('George', 'Russell', (SELECT Id FROM Teams WHERE Name = 'Mercedes')),
 ('Lando', 'Norris', (SELECT Id FROM Teams WHERE Name = 'McLaren')),

@@ -21,7 +21,10 @@ namespace CrashViewAdvanced.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAllCrashes()
         {
-            var crashes = await _context.Crashes.Include(c => c.CrashDrivers).ToListAsync();
+            var crashes = await _context.Crashes
+            .Include(c => c.CrashDrivers)
+           //     .ThenInclude(cd => cd.Driver)
+            .ToListAsync();
             //var crashes = await _context.Crashes.Include(c => c.CrashDrivers).ThenInclude(cd => cd.Driver).ToListAsync();
             return Ok(crashes);
         }
@@ -61,6 +64,7 @@ namespace CrashViewAdvanced.Controllers
         {
             var crash = await _context.Crashes
                 .Include(c => c.CrashDrivers)
+                    .ThenInclude(cd => cd.Driver)
                 .FirstOrDefaultAsync(c => c.Id == id);
 
             if (crash == null)

@@ -76,7 +76,7 @@ const Navbar = () => {
                 <>
                   {isAdmin && (
                     <NavLink 
-                      to="/admin/create-crash"
+                      to="/admin/login"
                       style={{
                         backgroundColor: '#000',
                         marginRight: '8px'
@@ -150,7 +150,7 @@ const Navbar = () => {
               <>
                 {isAdmin && (
                   <MobileNavLink 
-                    to="/admin/create-crash"
+                    to="/admin/login"
                     style={{
                       backgroundColor: '#000'
                     }}

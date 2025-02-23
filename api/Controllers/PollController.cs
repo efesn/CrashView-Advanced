@@ -24,6 +24,7 @@ namespace CrashViewAdvanced.Controllers
             var polls = await _context.Polls
                 .Include(p => p.Votes)
                 .Include(p => p.Discussion)
+                    // include poll options here CreateCrashPage:169
 //                    .ThenInclude(d => d.Crash) 
   //                      .ThenInclude(c => c.CrashDrivers)
     //                        .ThenInclude(cd => cd.Driver)

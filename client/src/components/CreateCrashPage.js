@@ -25,6 +25,11 @@ function CreateCrashPage() {
       { text: 'Racing Incident', drivers: [] }
     ]
   });
+
+  const [polls, setPolls] = useState([{
+    question: '',
+    options: ['', '']
+  }]);
     
   useEffect(() => {
     const fetchDrivers = async () => {
@@ -114,6 +119,41 @@ function CreateCrashPage() {
     });
   };
 
+  const handleAddPoll = () => {
+    setPolls([...polls, {
+      question: '',
+      options: ['', '']
+    }]);
+  };
+
+  const handleRemovePoll = (pollIndex) => {
+    setPolls(polls.filter((_, index) => index !== pollIndex));
+  };
+
+  const handlePollQuestionChange = (pollIndex, question) => {
+    const updatedPolls = [...polls];
+    updatedPolls[pollIndex].question = question;
+    setPolls(updatedPolls);
+  };
+
+  const handleAddOption = (pollIndex) => {
+    const updatedPolls = [...polls];
+    updatedPolls[pollIndex].options.push('');
+    setPolls(updatedPolls);
+  };
+
+  const handleRemoveOption = (pollIndex, optionIndex) => {
+    const updatedPolls = [...polls];
+    updatedPolls[pollIndex].options.splice(optionIndex, 1);
+    setPolls(updatedPolls);
+  };
+
+  const handleOptionChange = (pollIndex, optionIndex, text) => {
+    const updatedPolls = [...polls];
+    updatedPolls[pollIndex].options[optionIndex] = text;
+    setPolls(updatedPolls);
+  };
+
   const handleDiscussionSubmit = async (e) => {
     e.preventDefault();
     
@@ -123,6 +163,8 @@ function CreateCrashPage() {
     }
 
     try {
+      const mainPoll = polls[0];
+      
       const discussionData = {
         crashId: createdCrash.id,
         title: discussionFormData.title,
@@ -130,19 +172,16 @@ function CreateCrashPage() {
         updatedAt: new Date().toISOString(),
         comments: [],
         poll: {
-          question: discussionFormData.pollQuestion,
+          question: mainPoll.question,
           createdAt: new Date().toISOString(),
-          options: discussionFormData.pollOptions.map(option => ({
-            text: option.text,
-            pollOptionDrivers: option.drivers.map(driverId => ({
-              driverId: driverId
-            }))
-          })),
-          votes: []
+          options: mainPoll.options.map(optionText => ({
+            text: optionText,
+            votes: []
+          }))
         }
       };
 
-      console.log('Submitting discussion data:', discussionData); // For debugging
+      console.log('Submitting discussion data:', discussionData);
       await axios.post('https://localhost:7237/api/Discussions', discussionData);
       navigate('/crashes');
     } catch (err) {
@@ -296,7 +335,7 @@ function CreateCrashPage() {
         </button>
       </form>
 
-      {/* Discussion Form */}
+      {/* Step 2: Create Discussion (keep this form as is) */}
       <form onSubmit={handleDiscussionSubmit} style={{ 
         padding: '20px',
         border: '1px solid #ddd',
@@ -316,75 +355,156 @@ function CreateCrashPage() {
               style={{ width: '100%', padding: '8px', marginTop: '4px' }}
             />
           </div>
+        </div>
+      </form>
 
-          <div style={{ marginBottom: '10px' }}>
-            <label>Poll Question:</label>
-            <input
-              type="text"
-              value={discussionFormData.pollQuestion}
-              onChange={(e) => setDiscussionFormData({ ...discussionFormData, pollQuestion: e.target.value })}
-              required
-              style={{ width: '100%', padding: '8px', marginTop: '4px' }}
-              placeholder="e.g., Who was responsible for the crash?"
-            />
-          </div>
+      {/* Step 3: Add Polls */}
+      <form onSubmit={handleDiscussionSubmit} style={{ 
+        marginTop: '40px',
+        padding: '20px',
+        border: '1px solid #ddd',
+        borderRadius: '8px',
+        opacity: createdCrash ? 1 : 0.5,
+        pointerEvents: createdCrash ? 'auto' : 'none'
+      }}>
+        <h2>Step 3: Add Polls</h2>
+        
+        {polls.map((poll, pollIndex) => (
+          <div key={pollIndex} style={{ 
+            marginBottom: '20px',
+            padding: '20px',
+            border: '1px solid #ddd',
+            borderRadius: '8px',
+            backgroundColor: 'white'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+              <h3>Poll {pollIndex + 1}</h3>
+              {polls.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => handleRemovePoll(pollIndex)}
+                  style={{
+                    padding: '5px 10px',
+                    backgroundColor: '#dc2626',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Remove Poll
+                </button>
+              )}
+            </div>
 
-          <div style={{ marginTop: '20px' }}>
-            <h3>Poll Options</h3>
-            {discussionFormData.pollOptions.map((option, optionIndex) => (
-              <div key={optionIndex} style={{ 
-                marginBottom: '20px',
-                padding: '15px',
-                border: '1px solid #ddd',
-                borderRadius: '4px'
-              }}>
-                <h4>{option.text}</h4>
-                <div style={{ 
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+            <div style={{ marginBottom: '15px' }}>
+              <label>Poll Question:</label>
+              <input
+                type="text"
+                value={poll.question}
+                onChange={(e) => handlePollQuestionChange(pollIndex, e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  marginTop: '5px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px'
+                }}
+                placeholder="Enter your poll question"
+                required
+              />
+            </div>
+
+            <div style={{ marginBottom: '15px' }}>
+              <label>Poll Options:</label>
+              {poll.options.map((option, optionIndex) => (
+                <div key={optionIndex} style={{ 
+                  display: 'flex',
+                  alignItems: 'center',
                   gap: '10px',
                   marginTop: '10px'
                 }}>
-                  {selectedDrivers.map(driver => {
-                    const driverInfo = drivers.find(d => d.id === driver.driverId);
-                    const isSelected = option.drivers.includes(driver.driverId);
-                    
-                    return (
-                      <div
-                        key={driver.driverId}
-                        onClick={() => handleDriverPollSelect(optionIndex, driver.driverId)}
-                        style={{
-                          padding: '8px',
-                          border: isSelected ? '2px solid #C40500' : '1px solid #ddd',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          backgroundColor: isSelected ? '#fff0f0' : 'white',
-                          textAlign: 'center'
-                        }}
-                      >
-                        {driverInfo?.firstName} {driverInfo?.lastName}
-                      </div>
-                    );
-                  })}
+                  <input
+                    type="text"
+                    value={option}
+                    onChange={(e) => handleOptionChange(pollIndex, optionIndex, e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: '8px',
+                      border: '1px solid #ddd',
+                      borderRadius: '4px'
+                    }}
+                    placeholder={`Option ${optionIndex + 1}`}
+                    required
+                  />
+                  {poll.options.length > 2 && (
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveOption(pollIndex, optionIndex)}
+                      style={{
+                        padding: '5px 10px',
+                        backgroundColor: '#dc2626',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Remove
+                    </button>
+                  )}
                 </div>
-              </div>
-            ))}
+              ))}
+              <button
+                type="button"
+                onClick={() => handleAddOption(pollIndex)}
+                style={{
+                  marginTop: '10px',
+                  padding: '5px 10px',
+                  backgroundColor: '#4CAF50',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                + Add Option
+              </button>
+            </div>
           </div>
-        </div>
+        ))}
+
+        <button
+          type="button"
+          onClick={handleAddPoll}
+          style={{
+            marginBottom: '20px',
+            padding: '10px 20px',
+            backgroundColor: '#4CAF50',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          + Add Another Poll
+        </button>
 
         <button
           type="submit"
           style={{
+            display: 'block',
+            width: '100%',
+            padding: '12px',
             backgroundColor: '#C40500',
             color: 'white',
-            padding: '10px 20px',
             border: 'none',
             borderRadius: '4px',
             cursor: 'pointer',
             fontSize: '16px'
           }}
         >
-          Create Discussion
+          Create Discussion with Polls
         </button>
       </form>
     </div>
